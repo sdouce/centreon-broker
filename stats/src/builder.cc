@@ -43,40 +43,6 @@ using namespace com::centreon::broker::stats;
  **************************************/
 
 /**
- *  Default constructor.
- */
-builder::builder() {}
-
-/**
- *  Copy constructor.
- *
- *  @param[in] right The object to copy.
- */
-builder::builder(builder const& right) {
-  operator=(right);
-}
-
-/**
- *  Destructor.
- */
-builder::~builder() throw() {}
-
-/**
- *  Copy operator.
- *
- *  @param[in] right The object to copy.
- *
- *  @return This object.
- */
-builder& builder::operator=(builder const& right) {
-  if (this != &right) {
-    _data = right._data;
-    _root = right._root;
-  }
-  return (*this);
-}
-
-/**
  *  Get and build statistics.
  *
  *  @param[in,out] srz  The serializer to use to serialize data.
@@ -85,8 +51,11 @@ void builder::build() {
   // Cleanup.
   _data.clear();
   json11::Json::object object;
+
+  /* Fill object with several generic data, almost static */
   stats::get_generic_stats(object);
 
+  /* Fill object with mysql data */
   json11::Json::object mysql_object;
   stats::get_mysql_stats(mysql_object);
   object["mysql manager"] = mysql_object;
@@ -114,8 +83,8 @@ void builder::build() {
  *
  *  @return The statistics buffer.
  */
-std::string const& builder::data() const throw() {
-  return (_data);
+std::string const& builder::data() const noexcept {
+  return _data;
 }
 
 /**
@@ -123,6 +92,6 @@ std::string const& builder::data() const throw() {
  *
  *  @return The statistics tree.
  */
-json11::Json const& builder::root() const throw() {
-  return (_root);
+json11::Json const& builder::root() const noexcept {
+  return _root;
 }

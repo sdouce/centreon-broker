@@ -38,19 +38,17 @@ namespace stats {
  *  @brief Parse a <stats> node.
  */
 class builder {
- public:
-  builder();
-  builder(builder const& right);
-  ~builder() throw();
-  builder& operator=(builder const& right);
-  void build();
-  std::string const& data() const noexcept;
-  json11::Json const& root() const noexcept;
-
-
- private:
   std::string _data;
   json11::Json _root;
+
+ public:
+  builder() = default;
+  ~builder() noexcept = default;
+  builder(builder const& right) = delete;
+  builder& operator=(builder const& right) = delete;
+  void build();
+  const std::string& data() const noexcept;
+  const json11::Json& root() const noexcept;
 };
 }  // namespace stats
 

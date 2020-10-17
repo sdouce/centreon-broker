@@ -260,26 +260,6 @@ TEST_F(StatsTest, BuilderWithEndpoints) {
                   "listening");
 }
 
-TEST_F(StatsTest, CopyCtor) {
-  stats::builder build;
-
-  build.build();
-
-  stats::builder build2{build};
-
-  std::string err;
-  json11::Json const& result{build2.root()};
-
-  ASSERT_TRUE(err.empty());
-  ASSERT_TRUE(result.is_object());
-  ASSERT_EQ(result["version"].string_value(), CENTREON_BROKER_VERSION);
-  ASSERT_EQ(result["pid"].number_value(), getpid());
-  ASSERT_TRUE(result["now"].is_string());
-  ASSERT_TRUE(result["asio_version"].is_string());
-  ASSERT_TRUE(result["mysql manager"].is_object());
-  ASSERT_TRUE(result["mysql manager"]["delay since last check"].is_string());
-}
-
 TEST_F(StatsTest, Parser) {
   stats::parser parser;
   std::vector<std::string> result;

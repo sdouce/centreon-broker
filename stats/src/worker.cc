@@ -88,7 +88,6 @@ void worker::_close() {
     close(_fd);
     _fd = -1;
   }
-  return;
 }
 
 /**
@@ -107,7 +106,7 @@ bool worker::_open() {
       retval = false;
   } else
     retval = true;
-  return (retval);
+  return retval;
 }
 
 /**
