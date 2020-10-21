@@ -141,8 +141,9 @@ bool log_v2::load(std::string const& file,
         else
           continue;
 
-        *l = std::make_shared<logger>(entry["name"].string_value(),
-                                      sinks.begin(), sinks.end());
+        if (entry["name"].string_value() != "core")
+          *l = std::make_shared<logger>(entry["name"].string_value(),
+                                        sinks.begin(), sinks.end());
         (*l)->set_level(dbg_lvls[entry["level"].string_value()]);
         (*l)->flush_on(dbg_lvls[entry["level"].string_value()]);
       }

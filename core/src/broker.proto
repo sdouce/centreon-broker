@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 package com.centreon.broker;
 
@@ -17,6 +18,8 @@ service Broker {
 
   rpc GetNumEndpoint(google.protobuf.Empty) returns (GenericSize) {}
   rpc GetEndpointStats(GenericNameOrIndex) returns (GenericString) {}
+
+  rpc GetStats(google.protobuf.Empty) returns (BrokerStats) {}
 }
 
 message Version {
@@ -46,4 +49,29 @@ message GenericNameOrIndex {
 message GenericResponse {
     bool ok = 1;
     string err_msg = 2;
+}
+
+message GenericStats {
+  Version version = 1;
+  uint32 pid = 2;
+  google.protobuf.Timestamp now = 3;
+  Version asio_version = 4;
+}
+
+message EndpointStats {
+  string name = 1;
+  double event_processing_speed = 2;
+  google.protobuf.Timestamp last_connection_attempt = 3;
+  google.protobuf.Timestamp last_connection_success = 4;
+  google.protobuf.Timestamp last_event_at = 5;
+  string memory_file_path = 6;
+  string read_filters = 7;
+  string write_filters = 8;
+  string state = 9;
+  string status = 10;
+}
+
+message BrokerStats {
+  GenericStats generic = 1;
+  repeated EndpointStats endpoint = 2;
 }

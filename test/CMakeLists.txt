@@ -97,6 +97,7 @@ add_executable(ut
   ${TESTS_DIR}/io.cc
   ${TESTS_DIR}/logging.cc
   ${TESTS_DIR}/main.cc
+  ${TESTS_DIR}/stats/center.cc
   ${TESTS_DIR}/test_server.cc
   # Module sources.
   ${TESTS_SOURCES}
