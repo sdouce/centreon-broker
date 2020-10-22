@@ -22,11 +22,10 @@ using namespace com::centreon::broker;
 using namespace com::centreon::broker::stats;
 
 EndpointStats* center::register_endpoint(const std::string& name) {
-  auto& ctx = pool::instance().io_context();
   std::promise<EndpointStats*> p;
   std::future<EndpointStats*> retval = p.get_future();
-  asio::post(ctx, [& s = this->_stats, &p, &name] {
-    auto ep = s.add_endpoint();
+  _strand.post([this, &p, &name] {
+    auto ep = _stats.add_endpoint();
     ep->set_name(name);
     p.set_value(ep);
   });

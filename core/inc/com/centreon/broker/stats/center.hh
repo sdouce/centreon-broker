@@ -21,6 +21,7 @@
 
 #include <asio.hpp>
 #include <functional>
+#include <unordered_map>
 
 #include "com/centreon/broker/pool.hh"
 #include "broker.pb.h"
@@ -29,10 +30,11 @@ CCB_BEGIN()
 
 namespace stats {
 class center {
+  asio::io_context::strand _strand;
   BrokerStats _stats;
 
  public:
-  center() = default;
+  center() : _strand(pool::instance().io_context()) {}
   std::string to_string() {
     return "";
   }
@@ -40,8 +42,7 @@ class center {
   EndpointStats* register_endpoint(const std::string& name);
   template <typename T>
   void update(T* ptr, T value) {
-    auto& ctx = pool::instance().io_context();
-    asio::post(ctx, [ptr, &value] { *ptr = value; });
+    _strand.post([ptr, &value] { *ptr = value; });
   }
 };
 

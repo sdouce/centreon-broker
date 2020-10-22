@@ -39,7 +39,9 @@ class StatsCenterTest : public ::testing::Test {
 TEST_F(StatsCenterTest, Simple) {
   auto ep = _stats.register_endpoint("foobar");
   _stats.update(ep->mutable_status(), std::string("OK"));
+  _stats.update(ep->mutable_state(), std::string("Connected"));
+  ASSERT_TRUE(ep);
   ASSERT_EQ(ep->name(), "foobar");
   ASSERT_EQ(ep->status(), "OK");
-  ASSERT_TRUE(ep);
+  ASSERT_EQ(ep->state(), "Connected");
 }
