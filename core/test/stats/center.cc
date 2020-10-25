@@ -16,32 +16,29 @@
 ** For more information : contact@centreon.com
 */
 
+#include "com/centreon/broker/stats/center.hh"
+
 #include <gtest/gtest.h>
 
 #include "com/centreon/broker/pool.hh"
-#include "com/centreon/broker/stats/center.hh"
 
 using namespace com::centreon::broker;
 using namespace com::centreon::broker::stats;
 
 class StatsCenterTest : public ::testing::Test {
  public:
-  void SetUp() override {
-    pool::set_size(4);
-  }
-  void TearDown() override {
-  }
-
- protected:
-  stats::center _stats;
+  void SetUp() override { pool::set_size(4); }
+  void TearDown() override {}
 };
 
 TEST_F(StatsCenterTest, Simple) {
-  auto ep = _stats.register_endpoint("foobar");
-  _stats.update(ep->mutable_status(), std::string("OK"));
-  _stats.update(ep->mutable_state(), std::string("Connected"));
+  auto& stats = stats::center::instance();
+  auto ep = stats.register_endpoint("foobar");
+  stats.update(ep->mutable_status(), std::string("OK"));
+  stats.update(ep->mutable_state(), std::string("Connected"));
   ASSERT_TRUE(ep);
-  ASSERT_EQ(ep->name(), "foobar");
-  ASSERT_EQ(ep->status(), "OK");
-  ASSERT_EQ(ep->state(), "Connected");
+  ASSERT_EQ(stats.to_string(),
+            "{\"generic\":{\"version\":{\"major\":20,\"minor\":10,\"patch\":1}}"
+            ",\"endpoint\":[{\"name\":\"foobar\",\"state\":\"Connected\","
+            "\"status\":\"OK\"}]}");
 }

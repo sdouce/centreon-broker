@@ -26,6 +26,7 @@
 #include "com/centreon/broker/logging/logging.hh"
 #include "com/centreon/broker/multiplexing/muxer.hh"
 #include "com/centreon/broker/multiplexing/subscriber.hh"
+#include "com/centreon/broker/stats/center.hh"
 
 using namespace com::centreon::broker;
 using namespace com::centreon::broker::processing;
@@ -143,7 +144,7 @@ void failover::run() {
     // failovers of this failover.
     try {
       // Attempt to open endpoint.
-      _update_status("opening endpoint");
+      set_status("opening endpoint");
       set_last_connection_attempt(timestamp::now());
       {
         std::shared_ptr<io::stream> s(_endpoint->open());
@@ -157,7 +158,7 @@ void failover::run() {
         _initialized = true;
         set_last_connection_success(timestamp::now());
       }
-      _update_status("");
+      set_status("");
       _update = true;
 
       // Buffering.
@@ -175,11 +176,11 @@ void failover::run() {
           std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
-        _update_status("");
+        set_status("");
       }
 
       // Open secondaries.
-      _update_status("initializing secondaries");
+      set_status("initializing secondaries");
       std::vector<std::shared_ptr<io::stream> > secondaries;
       for (std::vector<std::shared_ptr<io::endpoint> >::iterator
                it(_secondary_endpoints.begin()),
@@ -198,16 +199,16 @@ void failover::run() {
               << "failover: error occured while opening a secondary "
               << "of endpoint '" << _name << "': " << e.what();
         }
-      _update_status("");
+      set_status("");
 
       // Shutdown failover.
       if (_failover_launched) {
         logging::debug(logging::medium)
             << "failover: shutting down failover of endpoint '" << _name << "'";
-        _update_status("shutting down failover");
+        set_status("shutting down failover");
         _failover->exit();
         _failover_launched = false;
-        _update_status("");
+        set_status("");
       }
 
       // Event processing loop.
@@ -241,7 +242,7 @@ void failover::run() {
         if (stream_can_read) {
           logging::debug(logging::low)
               << "failover: reading event from endpoint '" << _name << "'";
-          _update_status("reading event from stream");
+          set_status("reading event from stream");
           try {
             std::lock_guard<std::timed_mutex> stream_lock(_stream_m);
             timed_out_stream = !_stream->read(d, 0);
@@ -255,13 +256,13 @@ void failover::run() {
             logging::debug(logging::low)
                 << "failover: writing event of endpoint '" << _name
                 << "' to multiplexing engine";
-            _update_status("writing event to multiplexing engine");
+            set_status("writing event to multiplexing engine");
             _subscriber->get_muxer().write(d);
             tick();
-            _update_status("");
+            set_status("");
             continue;  // Stream read bias.
           }
-          _update_status("");
+          set_status("");
         }
 
         // Read from muxer stream.
@@ -271,7 +272,7 @@ void failover::run() {
           logging::debug(logging::low) << "failover: reading event from "
                                           "multiplexing engine for endpoint '"
                                        << _name << "'";
-          _update_status("reading event from multiplexing engine");
+          set_status("reading event from multiplexing engine");
           try {
             timed_out_muxer = !_subscriber->get_muxer().read(d, 0);
             should_commit = should_commit || d;
@@ -317,7 +318,7 @@ void failover::run() {
                 it = secondaries.erase(it);
               }
             }
-            _update_status("");
+            set_status("");
           }
         }
 
@@ -375,13 +376,13 @@ void failover::run() {
     }
 
     // Sleep a while before attempting a reconnection.
-    _update_status("sleeping before reconnection");
+    set_status("sleeping before reconnection");
 
     for (ssize_t i = 0;
          !_endpoint->is_ready() && !should_exit() && i < _retry_interval; i++)
       std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    _update_status("");
+    set_status("");
 
   } while (!should_exit());
 
@@ -522,20 +523,7 @@ void failover::_launch_failover() {
   if (_failover && !_failover_launched) {
     _failover_launched = true;
     _failover->start();
-    // FIXME DBR: what's this...
-    //    while (!_failover->get_initialized() && !_failover->wait(10))
-    //      yieldCurrentThread();
   }
-}
-
-/**
- *  Update status message.
- *
- *  @param[in] status New status.
- */
-void failover::_update_status(std::string const& status) {
-  std::lock_guard<std::mutex> lock(_status_m);
-  _status = status;
 }
 
 uint32_t failover::_get_queued_events() const {

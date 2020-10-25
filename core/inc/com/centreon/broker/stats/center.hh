@@ -23,30 +23,101 @@
 #include <functional>
 #include <unordered_map>
 
-#include "com/centreon/broker/pool.hh"
 #include "broker.pb.h"
+#include "com/centreon/broker/pool.hh"
 
 CCB_BEGIN()
 
 namespace stats {
+/**
+ * @brief Centralize Broker statistics.
+ *
+ * It works with the Broker thread pool. To avoid mutexes, we use a strand.
+ * Then each modification in stats is serialized through the strand. The big
+ * interest is that statistics are always written asynchronously and the
+ * impact on the software is almost nothing.
+ *
+ * The idea is that even there are several threads used to fill Broker
+ * statistics, never two updates are done at the same time. The strand forces
+ * an update to be done after another one. And then we don't need mutex to
+ * protect data.
+ *
+ * To help the software developer to use this strand not directly available
+ * to the developer, member functions are declared.
+ *
+ * Examples:
+ * * update(&EndpointStats::set_queued_events, _stats, value)
+ *   calls throw the thread pool the EndpointStats::set_queued_events member
+ *   function of the EndpointStats* _stats object with the value value.
+ * * update(_stats->mutable_state(), state)
+ *   sets the std::string state() of the _stats EndpointStats object to the
+ *   value value.
+ */
 class center {
   asio::io_context::strand _strand;
   BrokerStats _stats;
 
- public:
-  center() : _strand(pool::instance().io_context()) {}
-  std::string to_string() {
-    return "";
-  }
+  center();
 
+ public:
+  static center& instance();
+  std::string to_string();
+
+  /**
+   * @brief When an endpoint needs to write statistics, it primarily has to
+   * call this function to be registered in the statistic center and to get
+   * a pointer to its statistics. It is prohibited to directly write into this
+   * pointer. We must use the center member function for this purpose.
+   *
+   * @param name
+   *
+   * @return A pointer to the endpoint statistics.
+   */
   EndpointStats* register_endpoint(const std::string& name);
+  /**
+   * @brief Set the value pointed by ptr to the value value.
+   *
+   * @tparam T The template class.
+   * @param ptr A pointer to object of type T
+   * @param value The value of type T to set.
+   */
   template <typename T>
   void update(T* ptr, T value) {
     _strand.post([ptr, &value] { *ptr = value; });
   }
+
+  /**
+   * @brief Almost the same function as in the previous case, but with a
+   * Timestamp object. And we can directly set a time_t value.
+   *
+   * @param ptr A pointer to object of type Timestamp.
+   * @param value The value of type time_t to set.
+   */
+  void update(google::protobuf::Timestamp* ptr, time_t value) {
+    _strand.post([ptr, &value] {
+      ptr->Clear();
+      ptr->set_seconds(value);
+    });
+  }
+
+  /**
+   * @brief Sometimes with protobuf, we can not access to a mutable pointer.
+   * For example with int32 values. We have instead a setter member function.
+   * To be able to call it, we provide this method that needs the method
+   * to call, a pointer to the EndpointStats object and the value to set.
+   *
+   * @tparam T The type of the value to set.
+   * @param EndpointStats::*f A member function of EndpointStats.
+   * @param ptr A pointer to an existing EndpointStats.
+   * @param value The value to set.
+   */
+  template <typename T>
+  void update(void (EndpointStats::*f)(T), EndpointStats* ptr, T value) {
+    _strand.post([ptr, f, &value] { (ptr->*f)(value); });
+  }
 };
 
-}
+}  // namespace stats
 
 CCB_END()
 

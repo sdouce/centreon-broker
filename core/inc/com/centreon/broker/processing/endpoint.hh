@@ -21,17 +21,45 @@
 
 #include "com/centreon/broker/namespace.hh"
 #include "com/centreon/broker/processing/stat_visitable.hh"
+#include "com/centreon/broker/stats/center.hh"
 
 CCB_BEGIN()
 
 namespace processing {
 class endpoint : public stat_visitable {
+ protected:
+  EndpointStats* _stats;
+
  public:
-  endpoint(const std::string& name) : stat_visitable(name) {}
+  endpoint(const std::string& name)
+      : stat_visitable(name),
+        _stats(stats::center::instance().register_endpoint(name)) {}
   virtual ~endpoint() noexcept {}
   virtual void update() {}
   virtual void start() = 0;
   virtual void exit() = 0;
+  void set_state(const std::string& state) {
+    stats::center::instance().update(_stats->mutable_state(), state);
+  }
+  void set_status(const std::string& status) {
+    stats::center::instance().update(_stats->mutable_status(), status);
+  }
+  void set_last_connection_attempt(timestamp last_connection_attempt) {
+    stats::center::instance().update(_stats->mutable_last_connection_attempt(),
+                                     last_connection_attempt.get_time_t());
+  }
+  void set_last_connection_success(timestamp last_connection_success) {
+    stats::center::instance().update(_stats->mutable_last_connection_success(),
+                                     last_connection_success.get_time_t());
+  }
+  void set_last_event_at(timestamp last_event_at) {
+    stats::center::instance().update(_stats->mutable_last_event_at(),
+                                     last_event_at.get_time_t());
+  }
+  void set_queued_events(uint32_t value) {
+    stats::center::instance().update(&EndpointStats::set_queued_events, _stats,
+                                     value);
+  }
 };
 }  // namespace processing
 
