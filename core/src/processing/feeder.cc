@@ -53,7 +53,8 @@ feeder::feeder(std::string const& name,
       _state{feeder::stopped},
       _should_exit{false},
       _client(client),
-      _subscriber(name, false) {
+      _subscriber(name, false),
+      _stats(stats::center::instance().register_feeder(name)) {
   if (!client)
     throw exceptions::msg()
         << "could not process '" << _name << "' with no client stream";
@@ -250,4 +251,14 @@ const char* feeder::get_state() const {
       return "finished";
   }
   return "unknown";
+}
+
+/**
+ * @brief Fills the stats object with the given state. This function is just
+ * here to simplify the developer work.
+ *
+ * @param state A string containing the current state.
+ */
+void feeder::set_state(const std::string& state) {
+  stats::center::instance().update(_stats->mutable_state(), state);
 }

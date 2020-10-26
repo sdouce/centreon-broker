@@ -30,6 +30,7 @@
 #include "com/centreon/broker/multiplexing/subscriber.hh"
 #include "com/centreon/broker/namespace.hh"
 #include "com/centreon/broker/processing/stat_visitable.hh"
+#include "com/centreon/broker/stats/center.hh"
 
 CCB_BEGIN()
 
@@ -46,6 +47,7 @@ namespace processing {
  *  Take events from a source and send them to a destination.
  */
 class feeder : public stat_visitable {
+  FeederStats* _stats;
   enum state { stopped, running, finished };
   // Condition variable used when waiting for the thread to finish
   std::thread _thread;
@@ -62,6 +64,8 @@ class feeder : public stat_visitable {
   mutable misc::shared_mutex _client_m;
 
   void _callback() noexcept;
+
+  void set_state(const std::string& state);
 
  protected:
   std::string const& _get_read_filters() const override;

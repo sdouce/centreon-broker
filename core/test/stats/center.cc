@@ -36,9 +36,10 @@ TEST_F(StatsCenterTest, Simple) {
   auto ep = stats.register_endpoint("foobar");
   stats.update(ep->mutable_status(), std::string("OK"));
   stats.update(ep->mutable_state(), std::string("Connected"));
+  stats.update(&EndpointStats::set_queued_events, ep, 18u);
   ASSERT_TRUE(ep);
   ASSERT_EQ(stats.to_string(),
             "{\"generic\":{\"version\":{\"major\":20,\"minor\":10,\"patch\":1}}"
             ",\"endpoint\":[{\"name\":\"foobar\",\"state\":\"Connected\","
-            "\"status\":\"OK\"}]}");
+            "\"status\":\"OK\",\"queuedEvents\":18}]}");
 }

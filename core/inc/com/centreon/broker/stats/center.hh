@@ -63,17 +63,9 @@ class center {
   static center& instance();
   std::string to_string();
 
-  /**
-   * @brief When an endpoint needs to write statistics, it primarily has to
-   * call this function to be registered in the statistic center and to get
-   * a pointer to its statistics. It is prohibited to directly write into this
-   * pointer. We must use the center member function for this purpose.
-   *
-   * @param name
-   *
-   * @return A pointer to the endpoint statistics.
-   */
   EndpointStats* register_endpoint(const std::string& name);
+  FeederStats* register_feeder(const std::string& name);
+
   /**
    * @brief Set the value pointed by ptr to the value value.
    *
@@ -113,7 +105,7 @@ class center {
    */
   template <typename T>
   void update(void (EndpointStats::*f)(T), EndpointStats* ptr, T value) {
-    _strand.post([ptr, f, &value] { (ptr->*f)(value); });
+    _strand.post([ptr, f, value] { (ptr->*f)(value); });
   }
 };
 
