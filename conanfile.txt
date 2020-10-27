@@ -7,7 +7,7 @@ json11/e2e3a11@centreon/stable
 openssl/1.1.1h
 zlib/1.2.11
 mariadb-connector-c/3.1.10
-grpc/1.26.0@inexorgame/stable
+grpc/1.27.3@inexorgame/stable
 
 [generators]
 cmake_paths
