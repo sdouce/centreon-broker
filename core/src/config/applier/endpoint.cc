@@ -119,8 +119,9 @@ void endpoint::apply(std::list<config::endpoint> const& endpoints) {
     std::vector<std::string> eps;
     for (auto& ep : endpoints)
       eps.push_back(ep.name);
+    std::string j(fmt::format("{}", fmt::join(eps, ", ")));
     log_v2::core()->debug("endpoint applier: {} endpoints to apply: {}",
-                          endpoints.size(), fmt::join(eps, ", "));
+                          endpoints.size(), j);
   }
 
   // Copy endpoint configurations and apply eventual modifications.
