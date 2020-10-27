@@ -44,16 +44,12 @@ stat_visitable::stat_visitable(std::string const& name)
 void stat_visitable::stats(json11::Json::object& tree) {
   std::lock_guard<std::mutex> lock(_stat_mutex);
   tree["state"] = std::string(_state);
-  tree["read_filters"] = _get_read_filters();
-  tree["write_filters"] = _get_write_filters();
-  tree["event_processing_speed"] =
-      _event_processing_speed.get_processing_speed();
-  tree["last_connection_attempt"] =
-      static_cast<double>(_last_connection_attempt);
-  tree["last_connection_success"] =
-      static_cast<double>(_last_connection_success);
-  tree["last_event_at"] =
-      static_cast<double>(_event_processing_speed.get_last_event_time());
+  tree["read_filters"] = "";  //FIXME DBR: _get_read_filters();
+  tree["write_filters"]  = _get_write_filters();
+  tree["event_processing_speed"] = _event_processing_speed.get_processing_speed();
+  tree["last_connection_attempt"] = static_cast<double>(_last_connection_attempt);
+  tree["last_connection_success"] = static_cast<double>(_last_connection_success);
+  tree["last_event_at"] = static_cast<double>(_event_processing_speed.get_last_event_time());
   tree["queued_events"] = static_cast<int>(_get_queued_events());
 
   // Forward the stats.

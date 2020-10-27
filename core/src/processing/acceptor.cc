@@ -135,9 +135,6 @@ void acceptor::set_write_filters(std::unordered_set<uint32_t> const& filters) {
  *
  *  @return  The read filters used by the feeder.
  */
-std::string const& acceptor::_get_read_filters() const {
-  return _read_filters_str;
-}
 
 /**
  *  Get the write filters used by the feeder.

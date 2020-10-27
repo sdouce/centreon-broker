@@ -68,7 +68,6 @@ class feeder : public stat_visitable {
   void set_state(const std::string& state);
 
  protected:
-  std::string const& _get_read_filters() const override;
   std::string const& _get_write_filters() const override;
   void _forward_statistic(json11::Json::object& tree) override;
 
@@ -82,6 +81,7 @@ class feeder : public stat_visitable {
   feeder& operator=(feeder const&) = delete;
   bool is_finished() const noexcept;
   const char* get_state() const;
+  void set_read_filters(const std::unordered_set<uint32_t>& read_filters);
 
  protected:
   uint32_t _get_queued_events() const override;

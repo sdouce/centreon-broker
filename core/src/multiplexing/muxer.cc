@@ -229,7 +229,6 @@ bool muxer::read(std::shared_ptr<io::data>& event, time_t deadline) {
  */
 void muxer::set_read_filters(muxer::filters const& fltrs) {
   _read_filters = fltrs;
-  _read_filters_str = misc::dump_filters(_read_filters);
 }
 
 /**
@@ -260,15 +259,6 @@ muxer::filters const& muxer::get_read_filters() const {
  */
 muxer::filters const& muxer::get_write_filters() const {
   return _write_filters;
-}
-
-/**
- *  Get the read filters as a string.
- *
- *  @return  The read filters formatted into a string.
- */
-const std::string& muxer::get_read_filters_str() const {
-  return _read_filters_str;
 }
 
 /**

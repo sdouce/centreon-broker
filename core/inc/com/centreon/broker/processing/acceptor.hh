@@ -75,7 +75,6 @@ class acceptor : public endpoint {
 
  protected:
   // From stat_visitable
-  std::string const& _get_read_filters() const override;
   std::string const& _get_write_filters() const override;
   virtual void _forward_statistic(json11::Json::object& tree) override;
   virtual uint32_t _get_queued_events() const override;

@@ -26,6 +26,7 @@
 #include "com/centreon/broker/io/stream.hh"
 #include "com/centreon/broker/log_v2.hh"
 #include "com/centreon/broker/logging/logging.hh"
+#include "com/centreon/broker/misc/misc.hh"
 #include "com/centreon/broker/multiplexing/muxer.hh"
 
 using namespace com::centreon::broker;
@@ -59,7 +60,7 @@ feeder::feeder(std::string const& name,
     throw exceptions::msg()
         << "could not process '" << _name << "' with no client stream";
 
-  _subscriber.get_muxer().set_read_filters(read_filters);
+  set_read_filters(read_filters);
   _subscriber.get_muxer().set_write_filters(write_filters);
 
   set_last_connection_attempt(timestamp::now());
@@ -101,9 +102,6 @@ bool feeder::is_finished() const noexcept {
  *
  *  @return  The read filters used by the feeder.
  */
-std::string const& feeder::_get_read_filters() const {
-  return _subscriber.get_muxer().get_read_filters_str();
-}
 
 /**
  *  Get the write filters used by the feeder.
@@ -261,4 +259,11 @@ const char* feeder::get_state() const {
  */
 void feeder::set_state(const std::string& state) {
   stats::center::instance().update(_stats->mutable_state(), state);
+}
+
+void feeder::set_read_filters(
+    std::unordered_set<uint32_t> const& read_filters) {
+  _subscriber.get_muxer().set_read_filters(read_filters);
+  stats::center::instance().update(_stats->mutable_read_filters(),
+                                    misc::dump_filters(read_filters));
 }

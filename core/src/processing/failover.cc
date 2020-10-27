@@ -471,9 +471,6 @@ void failover::update() {
  *
  *  @return  The read filters used by the failover.
  */
-std::string const& failover::_get_read_filters() const {
-  return _subscriber->get_muxer().get_read_filters_str();
-}
 
 /**
  *  Get the write filters used by the failover.
