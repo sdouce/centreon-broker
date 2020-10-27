@@ -38,7 +38,7 @@ class endpoint : public stat_visitable {
   virtual void update() {}
   virtual void start() = 0;
   virtual void exit() = 0;
-  void set_name(const std::string& name); 
+  //void set_name(const std::string& name);
   void set_read_filers(const std::string& rf);
   void set_write_filters(const std::string& wf);
   void set_memory_file_path(const std::string& file);
@@ -52,29 +52,12 @@ class endpoint : public stat_visitable {
   void set_bbdo_input_ack_limit(uint32_t value);
   void set_bbdo_unacknowledged_events(uint32_t value);
   void set_peers(uint32_t value);
-
-  void set_state(const std::string& state) {
-    stats::center::instance().update(_stats->mutable_state(), state);
-  }
-  void set_status(const std::string& status) {
-    stats::center::instance().update(_stats->mutable_status(), status);
-  }
-  void set_last_connection_attempt(timestamp last_connection_attempt) {
-    stats::center::instance().update(_stats->mutable_last_connection_attempt(),
-                                     last_connection_attempt.get_time_t());
-  }
-  void set_last_connection_success(timestamp last_connection_success) {
-    stats::center::instance().update(_stats->mutable_last_connection_success(),
-                                     last_connection_success.get_time_t());
-  }
-  void set_last_event_at(timestamp last_event_at) {
-    stats::center::instance().update(_stats->mutable_last_event_at(),
-                                     last_event_at.get_time_t());
-  }
-  void set_queued_events(uint32_t value) {
-    stats::center::instance().update(&EndpointStats::set_queued_events, _stats,
-                                     value);
-  }
+  void set_state(const std::string& state);
+  void set_status(const std::string& status);
+  void set_last_connection_attempt(timestamp last_connection_attempt);
+  void set_last_connection_success(timestamp last_connection_success);
+  void set_last_event_at(timestamp last_event_at);
+  void set_queued_events(uint32_t value);
 };
 }  // namespace processing
 

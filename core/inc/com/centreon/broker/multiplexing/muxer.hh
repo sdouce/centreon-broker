@@ -48,7 +48,10 @@ class muxer : public io::stream {
  public:
   typedef std::unordered_set<uint32_t> filters;
 
-  muxer(std::string const& name, bool persistent = false);
+  muxer(std::string const& name,
+        bool persistent /*= false*/,
+        const filters& read_filters,
+        const filters& write_filters);
   muxer(muxer const& other) = delete;
   muxer& operator=(muxer const& other) = delete;
   ~muxer() noexcept;

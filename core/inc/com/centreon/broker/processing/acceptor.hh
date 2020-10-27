@@ -63,7 +63,6 @@ class acceptor : public endpoint {
   std::shared_ptr<io::endpoint> _endp;
   std::list<std::shared_ptr<processing::feeder> > _feeders;
   std::unordered_set<uint32_t> _read_filters;
-  std::string _read_filters_str;
   time_t _retry_interval;
   std::unordered_set<uint32_t> _write_filters;
   std::string _write_filters_str;
@@ -80,7 +79,10 @@ class acceptor : public endpoint {
   virtual uint32_t _get_queued_events() const override;
 
  public:
-  acceptor(std::shared_ptr<io::endpoint> endp, std::string const& name);
+  acceptor(std::shared_ptr<io::endpoint> endp,
+           std::string const& name,
+           const std::unordered_set<uint32_t>& read_filters,
+           const std::unordered_set<uint32_t>& write_filters);
   acceptor(acceptor const&) = delete;
   acceptor& operator=(acceptor const&) = delete;
   ~acceptor();

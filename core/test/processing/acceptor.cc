@@ -39,7 +39,9 @@ class ProcessingTest : public ::testing::Test {
 
     std::shared_ptr<io::endpoint> endpoint =
         std::make_shared<temporary_endpoint>();
-    _acceptor.reset(new acceptor(endpoint, "temporary_endpoint"));
+    _acceptor.reset(new acceptor(endpoint, "temporary_endpoint",
+                                 std::unordered_set<uint32_t>(),
+                                 std::unordered_set<uint32_t>()));
   }
 
   void TearDown() override {

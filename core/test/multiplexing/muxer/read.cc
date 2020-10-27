@@ -38,7 +38,9 @@ class MultiplexingMuxerRead : public ::testing::Test {
   void TearDown() override { config::applier::deinit(); }
 
   void setup(std::string const& name) {
-    _m.reset(new multiplexing::muxer(name, false));
+    _m.reset(new multiplexing::muxer(name, false,
+                                     std::unordered_set<uint32_t>(),
+                                     std::unordered_set<uint32_t>()));
     multiplexing::muxer::filters f;
     f.insert(io::raw::static_type());
     _m->set_read_filters(f);

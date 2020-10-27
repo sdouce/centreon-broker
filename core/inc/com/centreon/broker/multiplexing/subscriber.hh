@@ -47,8 +47,13 @@ class subscriber {
    *  @param[in] name        Name associated to the muxer.
    *  @param[in] persistent  Whether or not the muxer is persistent.
    */
-  subscriber(std::string const& name, bool persistent = false)
-      : _muxer(name, persistent) {
+  subscriber(std::string const& name,
+             bool persistent = false,
+             const std::unordered_set<uint32_t>& read_filters =
+                 std::unordered_set<uint32_t>(),
+             const std::unordered_set<uint32_t>& write_filters =
+                 std::unordered_set<uint32_t>())
+      : _muxer(name, persistent, read_filters, write_filters) {
     multiplexing::engine::instance().subscribe(&_muxer);
   }
 

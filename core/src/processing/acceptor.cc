@@ -36,12 +36,17 @@ using namespace com::centreon::broker::processing;
  *  @param[in] endp       Endpoint.
  *  @param[in] name       Name of the endpoint.
  */
-acceptor::acceptor(std::shared_ptr<io::endpoint> endp, std::string const& name)
+acceptor::acceptor(std::shared_ptr<io::endpoint> endp,
+                   std::string const& name,
+                   const std::unordered_set<uint32_t>& read_filters,
+                   const std::unordered_set<uint32_t>& write_filters)
     : endpoint(name),
       _state(stopped),
       _should_exit(false),
       _endp(endp),
-      _retry_interval(30) {}
+      _retry_interval(30),
+      _read_filters(read_filters),
+      _write_filters(write_filters) {}
 
 /**
  *  Destructor.
@@ -99,9 +104,7 @@ void acceptor::exit() {
  *  @param[in] filters  Set of accepted event IDs.
  */
 void acceptor::set_read_filters(std::unordered_set<uint32_t> const& filters) {
-  std::lock_guard<std::mutex> lock(_stat_mutex);
   _read_filters = filters;
-  _read_filters_str = misc::dump_filters(_read_filters);
 }
 
 /**

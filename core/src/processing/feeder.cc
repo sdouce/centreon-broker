@@ -54,14 +54,16 @@ feeder::feeder(std::string const& name,
       _state{feeder::stopped},
       _should_exit{false},
       _client(client),
-      _subscriber(name, false),
+      _subscriber(name, false, read_filters, write_filters),
       _stats(stats::center::instance().register_feeder(name)) {
   if (!client)
     throw exceptions::msg()
         << "could not process '" << _name << "' with no client stream";
 
-  set_read_filters(read_filters);
-  _subscriber.get_muxer().set_write_filters(write_filters);
+  stats::center::instance().update(_stats->mutable_read_filters(),
+                                    misc::dump_filters(read_filters));
+  stats::center::instance().update(_stats->mutable_write_filters(),
+                                    misc::dump_filters(write_filters));
 
   set_last_connection_attempt(timestamp::now());
   set_last_connection_success(timestamp::now());

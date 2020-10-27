@@ -1,5 +1,5 @@
 /*
-** Copyright 2011-2012,2015,2017 Centreon
+** Copyright 2020 Centreon
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -20,85 +20,88 @@
 
 #include <unistd.h>
 
-#include "com/centreon/broker/exceptions/msg.hh"
-#include "com/centreon/broker/exceptions/shutdown.hh"
-#include "com/centreon/broker/io/raw.hh"
-#include "com/centreon/broker/io/stream.hh"
-#include "com/centreon/broker/log_v2.hh"
-#include "com/centreon/broker/logging/logging.hh"
-#include "com/centreon/broker/misc/misc.hh"
-#include "com/centreon/broker/multiplexing/muxer.hh"
-
 using namespace com::centreon::broker;
 using namespace com::centreon::broker::processing;
 
-/**************************************
- *                                     *
- *           Public Methods            *
- *                                     *
- **************************************/
- 
-void endpoint::set_name(const std::string& name) {
-    stats::center::instance().update(_stats->mutable_name(), name);
-}
-
 void endpoint::set_read_filers(const std::string& rf) {
-    stats::center::instance().update(_stats->mutable_read_filters(), rf);
+  stats::center::instance().update(_stats->mutable_read_filters(), rf);
 }
 
-void endpoint::set_write_filters(const std::string& wf){
-    stats::center::instance().update(_stats->mutable_write_filters(), wf);
+void endpoint::set_write_filters(const std::string& wf) {
+  stats::center::instance().update(_stats->mutable_write_filters(), wf);
 }
 
-void endpoint::set_memory_file_path(const std::string& file){
-    stats::center::instance().update(_stats->mutable_memory_file_path(), file);
+void endpoint::set_memory_file_path(const std::string& file) {
+  stats::center::instance().update(_stats->mutable_memory_file_path(), file);
 }
 
 void endpoint::set_event_processing_speed(double value) {
   stats::center::instance().update(&EndpointStats::set_event_processing_speed,
-                                  _stats, value);
+                                   _stats, value);
 }
 
 void endpoint::set_one_peer_retention_mode(bool value) {
   stats::center::instance().update(&EndpointStats::set_one_peer_retention_mode,
-                                  _stats, value);
+                                   _stats, value);
 }
 
 void endpoint::set_pending_events(uint32_t value) {
-  stats::center::instance().update(&EndpointStats::set_pending_events,
-                                  _stats, value);
+  stats::center::instance().update(&EndpointStats::set_pending_events, _stats,
+                                   value);
 }
 
 void endpoint::set_queue_file_enabled(bool value) {
   stats::center::instance().update(&EndpointStats::set_queue_file_enabled,
-                                  _stats, value);
+                                   _stats, value);
 }
 
 void endpoint::set_unacknowledged_events(uint32_t value) {
   stats::center::instance().update(&EndpointStats::set_unacknowledged_events,
-                                  _stats, value);
+                                   _stats, value);
 }
 
 void endpoint::set_sql_pending_events(uint32_t value) {
   stats::center::instance().update(&EndpointStats::set_sql_pending_events,
-                                  _stats, value);
+                                   _stats, value);
 }
 
-void endpoint::set_queue_file_path(const std::string& file){
-    stats::center::instance().update(_stats->mutable_queue_file_path(), file);
+void endpoint::set_queue_file_path(const std::string& file) {
+  stats::center::instance().update(_stats->mutable_queue_file_path(), file);
 }
 
 void endpoint::set_bbdo_input_ack_limit(uint32_t value) {
   stats::center::instance().update(&EndpointStats::set_bbdo_input_ack_limit,
-                                  _stats, value);
+                                   _stats, value);
 }
 
 void endpoint::set_bbdo_unacknowledged_events(uint32_t value) {
-  stats::center::instance().update(&EndpointStats::set_bbdo_unacknowledged_events,
-                                  _stats, value);
+  stats::center::instance().update(
+      &EndpointStats::set_bbdo_unacknowledged_events, _stats, value);
 }
 
 void endpoint::set_peers(uint32_t value) {
-  stats::center::instance().update(&EndpointStats::set_peers,
-                                  _stats, value);
+  stats::center::instance().update(&EndpointStats::set_peers, _stats, value);
+}
+
+void endpoint::set_state(const std::string& state) {
+  stats::center::instance().update(_stats->mutable_state(), state);
+}
+void endpoint::set_status(const std::string& status) {
+  stats::center::instance().update(_stats->mutable_status(), status);
+}
+void endpoint::set_last_connection_attempt(timestamp last_connection_attempt) {
+  stats::center::instance().update(_stats->mutable_last_connection_attempt(),
+                                   last_connection_attempt.get_time_t());
+}
+void endpoint::set_last_connection_success(timestamp last_connection_success) {
+  stats::center::instance().update(_stats->mutable_last_connection_success(),
+                                   last_connection_success.get_time_t());
+}
+void endpoint::set_last_event_at(timestamp last_event_at) {
+  stats::center::instance().update(_stats->mutable_last_event_at(),
+                                   last_event_at.get_time_t());
+}
+void endpoint::set_queued_events(uint32_t value) {
+  stats::center::instance().update(&EndpointStats::set_queued_events, _stats,
+                                   value);
 }

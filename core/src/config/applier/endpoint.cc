@@ -171,10 +171,8 @@ void endpoint::apply(std::list<config::endpoint> const& endpoints) {
       std::shared_ptr<io::endpoint> e(_create_endpoint(ep, is_acceptor));
       std::unique_ptr<processing::endpoint> endp;
       if (is_acceptor) {
-        std::unique_ptr<processing::acceptor> acceptr(
-            new processing::acceptor(e, ep.name));
-        acceptr->set_read_filters(_filters(ep.read_filters));
-        acceptr->set_write_filters(_filters(ep.write_filters));
+        std::unique_ptr<processing::acceptor> acceptr(new processing::acceptor(
+            e, ep.name, _filters(ep.read_filters), _filters(ep.write_filters)));
         endp.reset(acceptr.release());
       } else
         endp.reset(_create_failover(ep, s, e, endp_to_create));
@@ -298,9 +296,7 @@ multiplexing::subscriber* endpoint::_create_subscriber(config::endpoint& cfg) {
 
   // Create subscriber.
   std::unique_ptr<multiplexing::subscriber> s(
-      new multiplexing::subscriber(cfg.name, true));
-  s->get_muxer().set_read_filters(read_elements);
-  s->get_muxer().set_write_filters(write_elements);
+      new multiplexing::subscriber(cfg.name, true, read_elements, write_elements));
   return s.release();
 }
 
