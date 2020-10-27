@@ -38,6 +38,21 @@ class endpoint : public stat_visitable {
   virtual void update() {}
   virtual void start() = 0;
   virtual void exit() = 0;
+  void set_name(const std::string& name); 
+  void set_read_filers(const std::string& rf);
+  void set_write_filters(const std::string& wf);
+  void set_memory_file_path(const std::string& file);
+  void set_event_processing_speed(double value);
+  void set_one_peer_retention_mode(bool value);
+  void set_pending_events(uint32_t value);
+  void set_queue_file_enabled(bool value);
+  void set_unacknowledged_events(uint32_t value);
+  void set_sql_pending_events(uint32_t value);
+  void set_queue_file_path(const std::string& file);
+  void set_bbdo_input_ack_limit(uint32_t value);
+  void set_bbdo_unacknowledged_events(uint32_t value);
+  void set_peers(uint32_t value);
+
   void set_state(const std::string& state) {
     stats::center::instance().update(_stats->mutable_state(), state);
   }

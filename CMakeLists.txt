@@ -453,6 +453,7 @@ set(LIBROKER_SOURCES
   ${SRC_DIR}/processing/failover.cc
   ${SRC_DIR}/processing/feeder.cc
   ${SRC_DIR}/processing/stat_visitable.cc
+  ${SRC_DIR}/processing/endpoint.cc
   ${SRC_DIR}/stats/center.cc
   ${SRC_DIR}/stats/helper.cc
   ${SRC_DIR}/time/daterange.cc
@@ -563,6 +564,7 @@ set(LIBROKER_SOURCES
   ${INC_DIR}/persistent_cache.hh
   ${INC_DIR}/persistent_file.hh
   ${INC_DIR}/processing/acceptor.hh
+  ${INC_DIR}/processing/endpoint.hh
   ${INC_DIR}/processing/failover.hh
   ${INC_DIR}/processing/feeder.hh
   ${INC_DIR}/processing/stat_visitable.hh
