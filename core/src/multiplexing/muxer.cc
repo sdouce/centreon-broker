@@ -230,28 +230,6 @@ bool muxer::read(std::shared_ptr<io::data>& event, time_t deadline) {
 }
 
 /**
- *  Set the read filters.
- *
- *  @param[in] fltrs  Read filters. That is read() will return only
- *                    events which type() is available in this set.
- */
-void muxer::set_read_filters(muxer::filters const& fltrs) {
-  _read_filters = fltrs;
-}
-
-/**
- *  Set the write filters.
- *
- *  @param[in] fltrs  Write filters. That is any submitted through
- *                    write() must be in this set otherwise it won't be
- *                    multiplexed.
- */
-void muxer::set_write_filters(muxer::filters const& fltrs) {
-  _write_filters = fltrs;
-  _write_filters_str = misc::dump_filters(_write_filters);
-}
-
-/**
  *  Get the read filters.
  *
  *  @return  The read filters.

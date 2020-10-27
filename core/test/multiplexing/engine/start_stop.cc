@@ -56,9 +56,8 @@ TEST_F(StartStop, MultiplexingWorks) {
     // Subscriber.
     std::unordered_set<uint32_t> filters;
     filters.insert(io::raw::static_type());
-    multiplexing::subscriber s("core_multiplexing_engine_start_stop", false);
-    s.get_muxer().set_read_filters(filters);
-    s.get_muxer().set_write_filters(filters);
+    multiplexing::subscriber s("core_multiplexing_engine_start_stop", false,
+        filters, filters);
 
     // Send events through engine.
     std::array<std::string, 2> messages{MSG1, MSG2};

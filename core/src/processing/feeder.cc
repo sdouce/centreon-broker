@@ -262,10 +262,3 @@ const char* feeder::get_state() const {
 void feeder::set_state(const std::string& state) {
   stats::center::instance().update(_stats->mutable_state(), state);
 }
-
-void feeder::set_read_filters(
-    std::unordered_set<uint32_t> const& read_filters) {
-  _subscriber.get_muxer().set_read_filters(read_filters);
-  stats::center::instance().update(_stats->mutable_read_filters(),
-                                    misc::dump_filters(read_filters));
-}

@@ -81,7 +81,6 @@ class feeder : public stat_visitable {
   feeder& operator=(feeder const&) = delete;
   bool is_finished() const noexcept;
   const char* get_state() const;
-  void set_read_filters(const std::unordered_set<uint32_t>& read_filters);
 
  protected:
   uint32_t _get_queued_events() const override;

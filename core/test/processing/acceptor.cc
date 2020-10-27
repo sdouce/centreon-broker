@@ -37,9 +37,9 @@ class ProcessingTest : public ::testing::Test {
       (void)e;
     }
 
-    std::shared_ptr<io::endpoint> endpoint =
+    _endpoint =
         std::make_shared<temporary_endpoint>();
-    _acceptor.reset(new acceptor(endpoint, "temporary_endpoint",
+    _acceptor.reset(new acceptor(_endpoint, "temporary_endpoint",
                                  std::unordered_set<uint32_t>(),
                                  std::unordered_set<uint32_t>()));
   }
@@ -50,6 +50,7 @@ class ProcessingTest : public ::testing::Test {
   }
 
  protected:
+  std::shared_ptr<io::endpoint> _endpoint;
   std::unique_ptr<acceptor> _acceptor;
 };
 
@@ -77,7 +78,8 @@ TEST_F(ProcessingTest, StartStop3) {
 TEST_F(ProcessingTest, StartWithFilterStop) {
   std::unordered_set<uint32_t> filters;
   filters.insert(io::raw::static_type());
-  _acceptor->set_read_filters(filters);
+  _acceptor.reset(new acceptor(_endpoint, "temporary_endpoint", filters,
+                               std::unordered_set<uint32_t>()));
   time_t now{time(nullptr)};
   _acceptor->set_retry_interval(2);
   _acceptor->start();

@@ -50,9 +50,8 @@ TEST_F(SubscriberTest, DefaultConstructor) {
   // Subscriber.
   std::unordered_set<uint32_t> filters;
   filters.insert(io::raw::static_type());
-  multiplexing::subscriber s("core_multiplexing_subscriber_ctor_default", "");
-  s.get_muxer().set_read_filters(filters);
-  s.get_muxer().set_write_filters(filters);
+  multiplexing::subscriber s("core_multiplexing_subscriber_ctor_default", false,
+      filters, filters);
 
   // Check that subscriber is empty.
   std::shared_ptr<io::data> event;

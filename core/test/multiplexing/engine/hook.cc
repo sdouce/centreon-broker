@@ -57,9 +57,8 @@ TEST_F(Hook, EngineWorks) {
     // Subscriber.
     std::unordered_set<uint32_t> filters;
     filters.insert(io::raw::static_type());
-    multiplexing::subscriber s("core_multiplexing_engine_hook", "");
-    s.get_muxer().set_read_filters(filters);
-    s.get_muxer().set_write_filters(filters);
+    multiplexing::subscriber s("core_multiplexing_engine_hook", false,
+        filters, filters);
 
     // Hook.
     hooker h;

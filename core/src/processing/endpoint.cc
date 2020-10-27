@@ -27,10 +27,6 @@ void endpoint::set_read_filers(const std::string& rf) {
   stats::center::instance().update(_stats->mutable_read_filters(), rf);
 }
 
-void endpoint::set_write_filters(const std::string& wf) {
-  stats::center::instance().update(_stats->mutable_write_filters(), wf);
-}
-
 void endpoint::set_memory_file_path(const std::string& file) {
   stats::center::instance().update(_stats->mutable_memory_file_path(), file);
 }
