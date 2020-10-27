@@ -99,12 +99,12 @@ class center {
    * to call, a pointer to the EndpointStats object and the value to set.
    *
    * @tparam T The type of the value to set.
-   * @param EndpointStats::*f A member function of EndpointStats.
-   * @param ptr A pointer to an existing EndpointStats.
+   * @param U::*f A member function of U.
+   * @param ptr A pointer to an existing U.
    * @param value The value to set.
    */
-  template <typename T>
-  void update(void (EndpointStats::*f)(T), EndpointStats* ptr, T value) {
+  template <typename U, typename T>
+  void update(void (U::*f)(T), U* ptr, T value) {
     _strand.post([ptr, f, value] { (ptr->*f)(value); });
   }
 };
