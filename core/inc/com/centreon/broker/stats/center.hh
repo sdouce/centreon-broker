@@ -75,7 +75,7 @@ class center {
    */
   template <typename T>
   void update(T* ptr, T value) {
-    _strand.post([ptr, &value] { *ptr = value; });
+    _strand.post([ptr, value=std::move(value)] { *ptr = value; });
   }
 
   /**
@@ -86,7 +86,7 @@ class center {
    * @param value The value of type time_t to set.
    */
   void update(google::protobuf::Timestamp* ptr, time_t value) {
-    _strand.post([ptr, &value] {
+    _strand.post([ptr, value] {
       ptr->Clear();
       ptr->set_seconds(value);
     });
