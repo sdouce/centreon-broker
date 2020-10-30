@@ -213,7 +213,6 @@ void tcp_connection::writing() {
     _write_queue_has_events = !_write_queue.empty();
   }
   if (!_write_queue_has_events) {
-
     _writing = false;
     return;
   }
