@@ -51,13 +51,6 @@ message GenericResponse {
     string err_msg = 2;
 }
 
-message GenericStats {
-  Version version = 1;
-  uint32 pid = 2;
-  google.protobuf.Timestamp now = 3;
-  Version asio_version = 4;
-}
-
 message FeederStats {
   string name = 1;
   string read_filters = 2;
@@ -93,8 +86,17 @@ message EndpointStats {
   uint32 peers = 20;
 }
 
+message ThreadPool {
+  string latency = 1;
+  uint32 size = 2;
+}
+
 message BrokerStats {
-  GenericStats generic = 1;
-  repeated EndpointStats endpoint = 2;
-  repeated FeederStats feeder = 3;
+  string version = 1;
+  uint32 pid = 2;
+  ThreadPool thread_pool = 3;
+  google.protobuf.Timestamp now = 4;
+  Version asio_version = 5;
+  repeated EndpointStats endpoint = 6;
+  repeated FeederStats feeder = 7;
 }

@@ -32,6 +32,7 @@
 #include "com/centreon/broker/exceptions/msg.hh"
 #include "com/centreon/broker/logging/logging.hh"
 #include "com/centreon/broker/stats/builder.hh"
+#include "com/centreon/broker/stats/center.hh"
 
 using namespace com::centreon::broker::stats;
 
@@ -147,9 +148,7 @@ void worker::_run() {
         else if ((fds.revents & POLLOUT)) {
           if (_buffer.empty()) {
             // Generate statistics.
-            builder stats_builder;
-            stats_builder.build();
-            _buffer = stats_builder.data();
+            _buffer = stats::center::instance().to_string();
           }
 
           // Write data.

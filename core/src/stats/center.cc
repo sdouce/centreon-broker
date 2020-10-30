@@ -32,9 +32,8 @@ center& center::instance() {
 }
 
 center::center() : _strand(pool::instance().io_context()) {
-  _stats.mutable_generic()->mutable_version()->set_major(version::major);
-  _stats.mutable_generic()->mutable_version()->set_minor(version::minor);
-  _stats.mutable_generic()->mutable_version()->set_patch(version::patch);
+  *_stats.mutable_version() = version::string;
+  _stats.set_pid(getpid());
 }
 
 /**
@@ -90,6 +89,9 @@ std::string center::to_string() {
   _strand.post([& s = this->_stats, &p] {
     const JsonPrintOptions options;
     std::string retval;
+    std::time_t now;
+    time(&now);
+    s.mutable_now()->set_seconds(now);
     MessageToJsonString(s, &retval, options);
     p.set_value(std::move(retval));
   });
