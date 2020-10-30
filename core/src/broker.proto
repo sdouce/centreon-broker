@@ -66,6 +66,7 @@ message FeederStats {
   uint32 queued_events = 5;
   google.protobuf.Timestamp last_connection_attempt = 6;
   google.protobuf.Timestamp last_connection_success = 7;
+  string last_error = 8;
 }
 
 message EndpointStats {
@@ -90,7 +91,6 @@ message EndpointStats {
   uint32 bbdo_input_ack_limit = 18;
   uint32 bbdo_unacknowledged_events = 19;
   uint32 peers = 20;
-
 }
 
 message BrokerStats {

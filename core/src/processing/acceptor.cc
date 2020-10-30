@@ -134,13 +134,10 @@ void acceptor::_forward_statistic(json11::Json::object& tree) {
   // Get statistic of acceptor.
   _endp->stats(tree);
   // Get statistics of feeders
-  for (std::list<std::shared_ptr<processing::feeder> >::iterator
-           it(_feeders.begin()),
-       end(_feeders.end());
-       it != end; ++it) {
+  for (auto& f : _feeders) {
     json11::Json::object subtree;
-    (*it)->stats(subtree);
-    tree[(*it)->get_name()] = subtree;
+    f->stats(subtree);
+    tree[f->get_name()] = subtree;
   }
 }
 

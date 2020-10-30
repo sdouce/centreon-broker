@@ -110,9 +110,9 @@ bool feeder::is_finished() const noexcept {
  *
  *  @return  The write filters used by the feeder.
  */
-std::string const& feeder::_get_write_filters() const {
-  return _subscriber.get_muxer().get_write_filters_str();
-}
+//std::string const& feeder::_get_write_filters() const {
+//  return _subscriber.get_muxer().get_write_filters_str();
+//}
 
 /**
  *  Forward to stream.
@@ -203,7 +203,7 @@ void feeder::_callback() noexcept {
   } catch (exceptions::shutdown const& e) {
     // Normal termination.
     (void)e;
-    log_v2::core()->info("feeder '{}' shut down", get_name());
+    log_v2::core()->info("feeder '{}' shut down", _name);
   } catch (std::exception const& e) {
     logging::error(logging::medium)
         << "feeder: error occured while processing client '" << _name
@@ -232,9 +232,9 @@ void feeder::_callback() noexcept {
   log_v2::processing()->info("feeder: thread of client '{}' will exit", _name);
 }
 
-uint32_t feeder::_get_queued_events() const {
-  return _subscriber.get_muxer().get_event_queue_size();
-}
+//uint32_t feeder::_get_queued_events() const {
+//  return _subscriber.get_muxer().get_event_queue_size();
+//}
 
 /**
  * @brief Get the feeder state as a string. Interesting for logs.
@@ -273,4 +273,40 @@ void feeder::set_last_connection_attempt(timestamp time) {
 
 void feeder::set_last_connection_success(timestamp time) {
   stats::center::instance().update(_stats->mutable_last_connection_success(), time.get_time_t());
+}
+
+void feeder::set_last_error(const std::string& last_error) {
+  stats::center::instance().update(_stats->mutable_last_error(), last_error);
+}
+
+/**
+ *  Gather statistics on this thread.
+ *
+ *  @param[in] tree  Tree of information.
+ */
+void feeder::stats(json11::Json::object& tree) {
+  std::lock_guard<std::mutex> lock(_stat_mutex);
+  tree["state"] = ""; // FIXME DBR: std::string(_state); It is now is protobuf object
+  tree["read_filters"] = "";  //FIXME DBR: _get_read_filters();
+  tree["write_filters"]  = ""; //FIXME DBR: _get_write_filters();
+  tree["event_processing_speed"] = _event_processing_speed.get_processing_speed();
+  tree["last_connection_attempt"] = -1; //FIXME DBR: static_cast<double>(_last_connection_attempt);
+  tree["last_connection_success"] = -1; //FIXME DBR: static_cast<double>(_last_connection_success);
+  tree["last_event_at"] = static_cast<double>(_event_processing_speed.get_last_event_time());
+  tree["queued_events"] = 0; //FIXME DBR: static_cast<int>(_get_queued_events());
+
+  // Forward the stats.
+  _forward_statistic(tree);
+}
+
+/**
+ *  Tick the event processing computation.
+ */
+void feeder::tick(uint32_t events) {
+  std::lock_guard<std::mutex> lock(_stat_mutex);
+  _event_processing_speed.tick(events);
+}
+
+const std::string& feeder::get_name() const {
+  return _name;
 }

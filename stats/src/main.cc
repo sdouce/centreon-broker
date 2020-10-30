@@ -60,9 +60,8 @@ void broker_module_init(void const* arg) {
 
     // Check that stats are enabled.
     config::state const& base_cfg(*static_cast<config::state const*>(arg));
-    bool loaded(false);
-    std::map<std::string, std::string>::const_iterator it(
-        base_cfg.params().find("stats"));
+    bool loaded{false};
+    auto it = base_cfg.params().find("stats");
     if (it != base_cfg.params().end()) {
       try {
         // Parse configuration.
@@ -73,12 +72,9 @@ void broker_module_init(void const* arg) {
         }
 
         // File configured, load stats engine.
-        for (std::vector<std::string>::const_iterator
-                 it = stats_cfg.begin(),
-                 end = stats_cfg.end();
-             it != end; ++it) {
-          pool.add_worker(*it);
-        }
+        for (auto& c : stats_cfg)
+          pool.add_worker(c);
+
         loaded = true;
       } catch (std::exception const& e) {
         logging::config(logging::high) << "stats: "

@@ -65,16 +65,20 @@ class feeder {
   // This mutex is used for the stat thread.
   mutable misc::shared_mutex _client_m;
 
+  misc::processing_speed_computer _event_processing_speed;
+  mutable std::mutex _stat_mutex;
+
   void _callback() noexcept;
 
   inline void set_state(const std::string& state);
   inline void set_queued_events(uint32_t events);
   inline void set_last_connection_attempt(timestamp time);
   inline void set_last_connection_success(timestamp time);
+  inline void set_last_error(const std::string& last_error);
 
  protected:
-  std::string const& _get_write_filters() const override;
-  void _forward_statistic(json11::Json::object& tree) override;
+  //std::string const& _get_write_filters() const override;
+  void _forward_statistic(json11::Json::object& tree);
 
  public:
   feeder(std::string const& name,
@@ -86,9 +90,12 @@ class feeder {
   feeder& operator=(feeder const&) = delete;
   bool is_finished() const noexcept;
   const char* get_state() const;
+  void stats(json11::Json::object& tree);
+  void tick(uint32_t events = 1);
+  const std::string& get_name() const;
 
  protected:
-  uint32_t _get_queued_events() const override;
+  //uint32_t _get_queued_events() const override;
 };
 }  // namespace processing
 
