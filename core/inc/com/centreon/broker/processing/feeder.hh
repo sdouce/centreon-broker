@@ -46,7 +46,9 @@ namespace processing {
  *
  *  Take events from a source and send them to a destination.
  */
-class feeder : public stat_visitable {
+class feeder {
+  const std::string _name;
+
   FeederStats* _stats;
   enum state { stopped, running, finished };
   // Condition variable used when waiting for the thread to finish
@@ -65,7 +67,10 @@ class feeder : public stat_visitable {
 
   void _callback() noexcept;
 
-  void set_state(const std::string& state);
+  inline void set_state(const std::string& state);
+  inline void set_queued_events(uint32_t events);
+  inline void set_last_connection_attempt(timestamp time);
+  inline void set_last_connection_success(timestamp time);
 
  protected:
   std::string const& _get_write_filters() const override;

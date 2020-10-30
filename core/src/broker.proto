@@ -60,23 +60,27 @@ message GenericStats {
 
 message FeederStats {
   string name = 1;
-  string state = 2;
-  string read_filters = 3;
-  string write_filters = 4;
+  string read_filters = 2;
+  string write_filters = 3;
+  string state = 4;
+  uint32 queued_events = 5;
+  google.protobuf.Timestamp last_connection_attempt = 6;
+  google.protobuf.Timestamp last_connection_success = 7;
 }
 
 message EndpointStats {
   string name = 1;
-  string state = 2;
-  string read_filters = 3;
-  string write_filters = 4;
-  double event_processing_speed = 5;
+  string read_filters = 2;
+  string write_filters = 3;
+  string state = 4;
+  uint32 queued_events = 5;
   google.protobuf.Timestamp last_connection_attempt = 6;
   google.protobuf.Timestamp last_connection_success = 7;
-  google.protobuf.Timestamp last_event_at = 8;
-  string memory_file_path = 9;
-  string status = 10;
-  uint32 queued_events = 11;
+
+  double event_processing_speed = 8;
+  google.protobuf.Timestamp last_event_at = 9;
+  string memory_file_path = 10;
+  string status = 11;
   bool one_peer_retention_mode = 12;
   uint32 pending_events = 13;
   bool queue_file_enabled = 14;

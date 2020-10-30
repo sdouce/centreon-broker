@@ -50,7 +50,7 @@ feeder::feeder(std::string const& name,
                std::shared_ptr<io::stream> client,
                std::unordered_set<uint32_t> const& read_filters,
                std::unordered_set<uint32_t> const& write_filters)
-    : stat_visitable(name),
+    : _name(name),
       _state{feeder::stopped},
       _should_exit{false},
       _client(client),
@@ -261,4 +261,16 @@ const char* feeder::get_state() const {
  */
 void feeder::set_state(const std::string& state) {
   stats::center::instance().update(_stats->mutable_state(), state);
+}
+
+void feeder::set_queued_events(uint32_t events) {
+  stats::center::instance().update(&FeederStats::set_queued_events, _stats, events);
+}
+
+void feeder::set_last_connection_attempt(timestamp time) {
+  stats::center::instance().update(_stats->mutable_last_connection_attempt(), time.get_time_t());
+}
+
+void feeder::set_last_connection_success(timestamp time) {
+  stats::center::instance().update(_stats->mutable_last_connection_success(), time.get_time_t());
 }
