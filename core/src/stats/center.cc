@@ -34,6 +34,7 @@ center& center::instance() {
 center::center() : _strand(pool::instance().io_context()) {
   *_stats.mutable_version() = version::string;
   _stats.set_pid(getpid());
+  pool::instance().start_stats(_stats.mutable_pool_stats());
 }
 
 /**

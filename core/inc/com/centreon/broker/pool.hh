@@ -21,6 +21,7 @@
 #include <asio.hpp>
 #include <cstdlib>
 
+#include "broker.pb.h"
 #include "com/centreon/broker/namespace.hh"
 
 CCB_BEGIN()
@@ -39,12 +40,12 @@ CCB_BEGIN()
  * This pool is instanciated through a unique instance. So its constructor is
  * private and we have a static method named instance() to get it.
  *
- * Before calling the instance of the pool, we can set the number of threads
- * inside it. This is done with a static member function named set_size(size_t).
+ * Initially, the pool is not started. To start it, there is a static method
+ * named start() that takes one argument: the number of threads.
  *
- * If the set_size() has not been called before using the pool or if the size
- * has been set to 0, its size will be initialized with the number of cpus on
- * the host computer.
+ * If the start() method is not called before using the pool, broker does not
+ * work, at least not as expected. If the given size is 0, its size will be
+ * initialized with the number of cpus on the host computer.
  *
  * To post tasks to the pool, we use the ASIO api, for that we need an
  * asio::io_context and an asio::io_service::work which are defined when then
@@ -63,6 +64,11 @@ CCB_BEGIN()
  */
 class pool {
   static size_t _pool_size;
+  static std::mutex _init_m;
+  static std::atomic_bool _initialized;
+  static pool _instance;
+  ThreadPool* _stats;
+
   asio::io_context _io_context;
   asio::io_service::work _worker;
   std::vector<std::thread> _pool;
@@ -71,25 +77,21 @@ class pool {
 
   asio::steady_timer _timer;
 
-  /* Latency in milliseconds between the call of check_latency and its real
-   * execution. */
-  std::atomic<double> _latency;
-
   pool();
-  void _start();
   void _stop();
   void _check_latency();
+  void _start(size_t size);
 
  public:
   ~pool() noexcept;
   pool(const pool&) = delete;
   pool& operator=(const pool&) = delete;
+  static void start(size_t size);
+  void start_stats(ThreadPool* stats);
 
-  static void set_size(size_t size) noexcept;
   static pool& instance();
   static asio::io_context& io_context();
-  size_t get_current_size() const;
-  double get_latency() const;
+  uint32_t get_current_size() const;
 };
 
 CCB_END()

@@ -9,7 +9,7 @@ service Broker {
   rpc GetVersion(google.protobuf.Empty) returns (Version) {}
   rpc DebugConfReload(GenericString) returns (GenericResponse) {}
 
-  //stats
+  // stats
   rpc GetGenericStats(google.protobuf.Empty) returns (GenericString) {}
   rpc GetSqlStats(google.protobuf.Empty) returns (GenericString) {}
 
@@ -40,15 +40,15 @@ message GenericSize {
 // 2 => access by index
 // not set => all elems
 message GenericNameOrIndex {
-    oneof nameOrIndex {
-        string str = 1;
-        uint32 idx = 2;
-    }
+  oneof nameOrIndex {
+    string str = 1;
+    uint32 idx = 2;
+  }
 }
 
 message GenericResponse {
-    bool ok = 1;
-    string err_msg = 2;
+  bool ok = 1;
+  string err_msg = 2;
 }
 
 message FeederStats {
@@ -94,7 +94,7 @@ message ThreadPool {
 message BrokerStats {
   string version = 1;
   uint32 pid = 2;
-  ThreadPool thread_pool = 3;
+  ThreadPool pool_stats = 3;
   google.protobuf.Timestamp now = 4;
   Version asio_version = 5;
   repeated EndpointStats endpoint = 6;

@@ -18,10 +18,14 @@
 #include "com/centreon/broker/pool.hh"
 
 #include "com/centreon/broker/log_v2.hh"
+#include "com/centreon/broker/stats/center.hh"
 
 using namespace com::centreon::broker;
 
 size_t pool::_pool_size(0);
+std::mutex pool::_init_m;
+std::atomic_bool pool::_initialized(false);
+pool pool::_instance{};
 
 /**
  * @brief The way to access to the pool.
@@ -29,8 +33,17 @@ size_t pool::_pool_size(0);
  * @return a reference to the pool.
  */
 pool& pool::instance() {
-  static pool instance;
-  return instance;
+  assert(pool::_initialized);
+  return _instance;
+}
+
+void pool::start(size_t size) {
+  std::lock_guard<std::mutex> lck(_init_m);
+  if (!_initialized) {
+    _instance._start(size);
+    _initialized = true;
+  } else
+    log_v2::core()->error("pool already started.");
 }
 
 /**
@@ -43,15 +56,35 @@ asio::io_context& pool::io_context() {
 }
 
 /**
- * @brief Default constructor. Hidden, is called throw the static instance()
- * method.
+ * @brief Default constructor. Private, it is called throw the static instance()
+ * method. While this object gathers statistics for the statistics engine,
+ * is is not initialized as others. This is because, the stats engine is
+ * heavily dependent on the pool. So the stats engine needs the pool and the
+ * pool needs the stats engine.
+ *
+ * The idea here, is that when the pool is started, no stats are done. And when
+ * the stats::center is well started, it asks the pool to start its stats.
  */
 pool::pool()
-    : _io_context(_pool_size),
+    : _stats(nullptr),
+      _io_context(_pool_size),
       _worker(_io_context),
       _closed(true),
-      _timer(_io_context) {
-  _start();
+      _timer(_io_context) {}
+
+/**
+ * @brief Start the stats of the pool. This method is called by the stats engine
+ * when it is ready.
+ *
+ * @param stats The pointer used by the pool to set its data in the stats
+ * engine.
+ */
+void pool::start_stats(ThreadPool* stats) {
+  _stats = stats;
+  /* The only time, we set a data directly to stats, this is because, this
+   * method is called by the stats engine and the _check_latency has not started
+   */
+  _stats->set_size(get_current_size());
   _check_latency();
 }
 
@@ -59,8 +92,9 @@ pool::pool()
  * @brief Start the thread pool used for the tcp connections.
  *
  */
-void pool::_start() {
+void pool::_start(size_t size) {
   std::lock_guard<std::mutex> lock(_closed_m);
+  _pool_size = size;
   if (_closed) {
     _closed = false;
     /* We fix the thread pool used by asio to hardware concurrency and at
@@ -100,22 +134,11 @@ void pool::_stop() {
 }
 
 /**
- * @brief Static method to set the thread pool size. A positive integer or
- * 0 to leave broker choosing the size with the formula max(2, number of CPUs /
- * 2).
- *
- * @param size The size.
- */
-void pool::set_size(size_t size) noexcept {
-  _pool_size = size;
-}
-
-/**
  * @brief Returns the number of threads used in the pool.
  *
  * @return a size.
  */
-size_t pool::get_current_size() const {
+uint32_t pool::get_current_size() const {
   std::lock_guard<std::mutex> lock(_closed_m);
   return _pool.size();
 }
@@ -130,22 +153,10 @@ void pool::_check_latency() {
   asio::post(_io_context, [start, this] {
     auto end = std::chrono::system_clock::now();
     auto duration = std::chrono::duration<double, std::milli>(end - start);
-    _latency = duration.count();
-    log_v2::core()->trace("Thread pool latency at {}ms", _latency);
+    stats::center::instance().update(_stats->mutable_latency(),
+                                     fmt::format("{:.3f}ms", duration.count()));
+    log_v2::core()->trace("Thread pool latency {:.3f}ms", duration.count());
   });
   _timer.expires_after(std::chrono::seconds(10));
   _timer.async_wait(std::bind(&pool::_check_latency, this));
-}
-
-/**
- * @brief Get the pool latency in ms. This value is computed
- * every 10s and represents the duration between the time point we tell the
- * thread pool to execute a task and the time point when it really executes this
- * task. A latency of 0ms means the pool has enough free threads to execute
- * tasks immediatly.
- *
- * @return A duration in ms.
- */
-double pool::get_latency() const {
-  return _latency;
 }

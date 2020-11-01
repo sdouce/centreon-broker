@@ -44,14 +44,13 @@ void com::centreon::broker::stats::get_generic_stats(
   object["pid"] = getpid();
   object["now"] = std::to_string(::time(nullptr));
 
-  std::string asio_version(fmt::format("{}.{}.{}",
-        ASIO_VERSION / 100000,
-        ASIO_VERSION / 100 % 1000,
-        ASIO_VERSION % 100));
+  std::string asio_version(fmt::format("{}.{}.{}", ASIO_VERSION / 100000,
+                                       ASIO_VERSION / 100 % 1000,
+                                       ASIO_VERSION % 100));
   object["asio_version"] = asio_version;
   json11::Json::object pool;
   pool["size"] = static_cast<int32_t>(pool::instance().get_current_size());
-  pool["latency"] = fmt::format("{:.3f}ms", pool::instance().get_latency());
+  pool["latency"] = "";
   object["thread_pool"] = pool;
 }
 

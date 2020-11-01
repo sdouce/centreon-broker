@@ -27,7 +27,7 @@ using namespace com::centreon::broker::stats;
 
 class StatsCenterTest : public ::testing::Test {
  public:
-  void SetUp() override { pool::set_size(4); }
+  void SetUp() override { pool::start(4); }
   void TearDown() override {}
 };
 

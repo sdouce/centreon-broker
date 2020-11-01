@@ -38,6 +38,7 @@
 #include "com/centreon/broker/neb/internal.hh"
 #include "com/centreon/broker/neb/set_log_data.hh"
 #include "com/centreon/broker/neb/statistics/generator.hh"
+#include "com/centreon/broker/pool.hh"
 #include "com/centreon/engine/broker.hh"
 #include "com/centreon/engine/comment.hh"
 #include "com/centreon/engine/events/loop.hh"
@@ -1543,6 +1544,7 @@ int neb::callback_process(int callback_type, void* data) {
       try {
         config::parser parsr;
         config::state conf{parsr.parse(gl_configuration_file)};
+        pool::start(conf.pool_size());
 
         // Apply resulting configuration.
         config::applier::state::instance().apply(conf);
