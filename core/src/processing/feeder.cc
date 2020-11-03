@@ -68,6 +68,9 @@ feeder::feeder(std::string const& name,
   set_last_connection_attempt(timestamp::now());
   set_last_connection_success(timestamp::now());
   set_state("connecting");
+  set_event_processing_speed(_event_processing_speed.get_processing_speed());
+  set_last_event_at(static_cast<double>(_event_processing_speed.get_last_event_time()));
+
   std::unique_lock<std::mutex> lck(_state_m);
   _thread = std::thread(&feeder::_callback, this);
   _state_cv.wait(lck,
@@ -277,6 +280,16 @@ void feeder::set_last_connection_success(timestamp time) {
 
 void feeder::set_last_error(const std::string& last_error) {
   stats::center::instance().update(_stats->mutable_last_error(), last_error);
+}
+
+void feeder::set_event_processing_speed(double value) {
+  stats::center::instance().update(&FeederStats::set_event_processing_speed,
+                                   _stats, value);
+}
+
+void feeder::set_last_event_at(double value) {
+  stats::center::instance().update(&FeederStats::set_last_event_at,
+                                   _stats, value);
 }
 
 /**

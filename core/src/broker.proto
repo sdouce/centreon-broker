@@ -62,6 +62,8 @@ message FeederStats {
   string last_error = 8;
   string memory_file_path = 9;
   string queue_file_path = 10;
+  double event_processing_speed = 11;
+  double last_event_at = 12;
 }
 
 message ConflictManagerStats {
@@ -83,7 +85,6 @@ message EndpointStats {
   uint32 queued_events = 5;
   google.protobuf.Timestamp last_connection_attempt = 6;
   google.protobuf.Timestamp last_connection_success = 7;
-
   double event_processing_speed = 8;
   google.protobuf.Timestamp last_event_at = 9;
   string memory_file_path = 10;

@@ -76,6 +76,8 @@ class feeder {
   inline void set_last_connection_attempt(timestamp time);
   inline void set_last_connection_success(timestamp time);
   inline void set_last_error(const std::string& last_error);
+  inline void set_event_processing_speed(double value);
+  inline void set_last_event_at(double value);
 
  protected:
   //std::string const& _get_write_filters() const override;
