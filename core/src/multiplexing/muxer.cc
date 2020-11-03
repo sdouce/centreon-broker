@@ -302,6 +302,11 @@ void muxer::statistics(json11::Json::object& tree) const {
   tree["unacknowledged_events"] = unacknowledged;
 }
 
+bool muxer::is_queue_file_enabled(void) {
+  bool queue_file_enabled(_file.get());
+  return queue_file_enabled;
+}
+
 int muxer::get_unacknowledged_events(void) {
   int unacknowledged = 0;
   for (auto it = _events.begin(); it != _pos; ++it)

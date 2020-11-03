@@ -72,6 +72,7 @@ class muxer : public io::stream {
   void wake();
   int write(std::shared_ptr<io::data> const& d);
   int get_unacknowledged_events(void);
+  bool is_queue_file_enabled(void);
 
   static std::string memory_file(std::string const& name);
   static std::string queue_file(std::string const& name);

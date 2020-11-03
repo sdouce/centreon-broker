@@ -70,8 +70,7 @@ failover::failover(std::shared_ptr<io::endpoint> endp,
                                     misc::dump_filters(write_filters));
 
   set_unacknowledged_events(_subscriber->get_muxer().get_unacknowledged_events());
-
-
+  set_queue_file_enabled(_subscriber->get_muxer().is_queue_file_enabled());
 }
 
 /**
