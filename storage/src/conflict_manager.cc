@@ -27,6 +27,7 @@
 #include "com/centreon/broker/multiplexing/publisher.hh"
 #include "com/centreon/broker/mysql_manager.hh"
 #include "com/centreon/broker/neb/events.hh"
+#include "com/centreon/broker/stats/center.hh"
 #include "com/centreon/broker/storage/index_mapping.hh"
 #include "com/centreon/broker/storage/perfdata.hh"
 
@@ -94,7 +95,13 @@ conflict_manager::conflict_manager(database_config const& dbcfg,
       _speed{},
       _stats_count_pos{0},
       _ref_count{0},
-      _oldest_timestamp{std::numeric_limits<time_t>::max()} {
+      _oldest_timestamp{std::numeric_limits<time_t>::max()},
+      _stats(stats::center::instance().register_conflict_manager()) {
+  stats::center::instance().update(&ConflictManagerStats::set_loop_timeout,
+                                   _stats, _loop_timeout);
+  stats::center::instance().update(
+      &ConflictManagerStats::set_max_pending_events, _stats,
+      static_cast<uint32_t>(_max_pending_queries));
   log_v2::sql()->debug("conflict_manager: class instanciation");
 }
 

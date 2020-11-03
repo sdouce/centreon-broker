@@ -28,6 +28,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "broker.pb.h"
 #include "com/centreon/broker/io/events.hh"
 #include "com/centreon/broker/io/stream.hh"
 #include "com/centreon/broker/misc/mfifo.hh"
@@ -199,6 +200,7 @@ class conflict_manager {
 
   timestamp _oldest_timestamp;
   std::unordered_map<uint32_t, stored_timestamp> _stored_timestamps;
+  ConflictManagerStats* _stats;
 
   database::mysql_stmt _acknowledgement_insupdate;
   database::mysql_stmt _comment_insupdate;

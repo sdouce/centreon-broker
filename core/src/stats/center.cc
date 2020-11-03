@@ -18,6 +18,7 @@
 
 #include "com/centreon/broker/stats/center.hh"
 
+#include <fmt/format.h>
 #include <google/protobuf/util/json_util.h>
 
 #include "com/centreon/broker/version.hh"
@@ -33,6 +34,9 @@ center& center::instance() {
 
 center::center() : _strand(pool::instance().io_context()) {
   *_stats.mutable_version() = version::string;
+  *_stats.mutable_asio_version() =
+      fmt::format("{}.{}.{}", ASIO_VERSION / 100000, ASIO_VERSION / 100 % 1000,
+                  ASIO_VERSION % 100);
   _stats.set_pid(getpid());
   pool::instance().start_stats(_stats.mutable_pool_stats());
 }
@@ -75,6 +79,24 @@ EndpointStats* center::register_endpoint(const std::string& name) {
     auto ep = _stats.add_endpoint();
     ep->set_name(name);
     p.set_value(ep);
+  });
+  return retval.get();
+}
+
+/**
+ * @brief To allow the conflict manager to send statistics, it has to call this
+ * function to get a pointer to its statistics container.
+ * It is prohibited to directly write into the returned pointer. We must use
+ * the center member functions for this purpose.
+ *
+ * @return A pointer to the conflict_manager statistics.
+ */
+ConflictManagerStats* center::register_conflict_manager() {
+  std::promise<ConflictManagerStats*> p;
+  std::future<ConflictManagerStats*> retval = p.get_future();
+  _strand.post([this, &p] {
+    auto cm = _stats.mutable_conflict_manager();
+    p.set_value(cm);
   });
   return retval.get();
 }

@@ -65,6 +65,7 @@ class center {
 
   EndpointStats* register_endpoint(const std::string& name);
   FeederStats* register_feeder(const std::string& name);
+  ConflictManagerStats* register_conflict_manager();
 
   /**
    * @brief Set the value pointed by ptr to the value value.
@@ -75,7 +76,7 @@ class center {
    */
   template <typename T>
   void update(T* ptr, T value) {
-    _strand.post([ptr, value=std::move(value)] { *ptr = value; });
+    _strand.post([ptr, value = std::move(value)] { *ptr = value; });
   }
 
   /**
