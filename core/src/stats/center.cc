@@ -20,8 +20,10 @@
 
 #include <fmt/format.h>
 #include <google/protobuf/util/json_util.h>
+#include <fmt/format.h>
 
 #include "com/centreon/broker/version.hh"
+#include "com/centreon/broker/config/applier/state.hh"
 
 using namespace com::centreon::broker;
 using namespace com::centreon::broker::stats;
@@ -78,6 +80,11 @@ EndpointStats* center::register_endpoint(const std::string& name) {
   _strand.post([this, &p, &name] {
     auto ep = _stats.add_endpoint();
     ep->set_name(name);
+    *ep->mutable_memory_file_path() = fmt::format(
+      "{}.memory.{}", config::applier::state::instance().cache_dir(), name);
+    *ep->mutable_queue_file_path() = fmt::format(
+      "{}.queue.{}", config::applier::state::instance().cache_dir(), name);
+
     p.set_value(ep);
   });
   return retval.get();

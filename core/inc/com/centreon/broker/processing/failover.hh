@@ -29,7 +29,6 @@
 #include "com/centreon/broker/multiplexing/subscriber.hh"
 #include "com/centreon/broker/namespace.hh"
 #include "com/centreon/broker/processing/acceptor.hh"
-#include "com/centreon/broker/processing/endpoint.hh"
 
 CCB_BEGIN()
 

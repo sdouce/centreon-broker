@@ -46,7 +46,9 @@ acceptor::acceptor(std::shared_ptr<io::endpoint> endp,
       _endp(endp),
       _retry_interval(30),
       _read_filters(read_filters),
-      _write_filters(write_filters) {}
+      _write_filters(write_filters) {
+  set_read_filers(misc::dump_filters(read_filters));
+}
 
 /**
  *  Destructor.

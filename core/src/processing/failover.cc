@@ -58,7 +58,8 @@ failover::failover(std::shared_ptr<io::endpoint> endp,
       _next_timeout(0),
       _retry_interval(30),
       _subscriber(sbscrbr),
-      _update(false) {}
+      _update(false) {
+}
 
 /**
  *  Destructor.

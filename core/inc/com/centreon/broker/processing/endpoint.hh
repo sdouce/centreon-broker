@@ -31,9 +31,7 @@ class endpoint : public stat_visitable {
   EndpointStats* _stats;
 
  public:
-  endpoint(const std::string& name)
-      : stat_visitable(name),
-        _stats(stats::center::instance().register_endpoint(name)) {}
+  endpoint(const std::string& name);
   virtual ~endpoint() noexcept {}
   virtual void update() {}
   virtual void start() = 0;
@@ -41,14 +39,12 @@ class endpoint : public stat_visitable {
   //void set_name(const std::string& name);
   void set_read_filers(const std::string& rf);
   void set_write_filters(const std::string& wf);
-  void set_memory_file_path(const std::string& file);
   void set_event_processing_speed(double value);
   void set_one_peer_retention_mode(bool value);
   void set_pending_events(uint32_t value);
   void set_queue_file_enabled(bool value);
   void set_unacknowledged_events(uint32_t value);
   void set_sql_pending_events(uint32_t value);
-  void set_queue_file_path(const std::string& file);
   void set_bbdo_input_ack_limit(uint32_t value);
   void set_bbdo_unacknowledged_events(uint32_t value);
   void set_peers(uint32_t value);

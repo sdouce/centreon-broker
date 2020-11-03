@@ -20,6 +20,7 @@
 #define CENTREON_BROKER_CORE_INC_COM_CENTREON_STATS_HELPER_HH_
 
 #include "com/centreon/broker/namespace.hh"
+#include "com/centreon/broker/processing/endpoint.hh"
 #include <json11.hpp>
 
 CCB_BEGIN();
