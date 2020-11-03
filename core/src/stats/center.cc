@@ -59,6 +59,11 @@ FeederStats* center::register_feeder(const std::string& name) {
   _strand.post([this, &p, &name] {
     auto ep = _stats.add_feeder();
     ep->set_name(name);
+    *ep->mutable_memory_file_path() = fmt::format(
+      "{}.memory.{}", config::applier::state::instance().cache_dir(), name);
+    *ep->mutable_queue_file_path() = fmt::format(
+      "{}.queue.{}", config::applier::state::instance().cache_dir(), name);
+
     p.set_value(ep);
   });
   return retval.get();

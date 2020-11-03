@@ -59,7 +59,13 @@ message FeederStats {
   uint32 queued_events = 5;
   google.protobuf.Timestamp last_connection_attempt = 6;
   google.protobuf.Timestamp last_connection_success = 7;
-  string last_error = 8;
+  string last_error = 8;*ep->mutable_memory_file_path() = fmt::format(
+      "{}.memory.{}", config::applier::state::instance().cache_dir(), name);
+    *ep->mutable_queue_file_path() = fmt::format(
+      "{}.queue.{}", config::applier::state::instance().cache_dir(), name);
+
+  string memory_file_path = 9;
+  string queue_file_path = 10;
 }
 
 message ConflictManagerStats {
