@@ -69,6 +69,7 @@ failover::failover(std::shared_ptr<io::endpoint> endp,
   stats::center::instance().update(_stats->mutable_write_filters(),
                                     misc::dump_filters(write_filters));
 
+  set_unacknowledged_events(_subscriber->get_muxer().get_unacknowledged_events());
 
 
 }
@@ -513,6 +514,7 @@ void failover::_forward_statistic(json11::Json::object& tree) {
       tree["status"] = "busy";
   }
   _subscriber->get_muxer().statistics(tree);
+
   json11::Json::object subtree;
   if (_failover)
     _failover->stats(subtree);

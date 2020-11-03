@@ -302,6 +302,14 @@ void muxer::statistics(json11::Json::object& tree) const {
   tree["unacknowledged_events"] = unacknowledged;
 }
 
+int muxer::get_unacknowledged_events(void) {
+  int unacknowledged = 0;
+  for (auto it = _events.begin(); it != _pos; ++it)
+    ++unacknowledged;
+
+  return unacknowledged;
+}
+
 /**
  *  Wake all threads waiting on this subscriber.
  */
