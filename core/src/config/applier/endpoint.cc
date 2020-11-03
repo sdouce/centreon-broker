@@ -363,7 +363,8 @@ processing::failover* endpoint::_create_failover(
 
   // Return failover thread.
   std::unique_ptr<processing::failover> fo(
-      new processing::failover(endp, sbscrbr, cfg.name));
+      new processing::failover(endp, sbscrbr, cfg.name, _filters(cfg.read_filters), 
+                              _filters(cfg.write_filters)));
   fo->set_buffering_timeout(cfg.buffering_timeout);
   fo->set_retry_interval(cfg.retry_interval);
   fo->set_failover(failovr);

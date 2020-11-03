@@ -47,7 +47,14 @@ acceptor::acceptor(std::shared_ptr<io::endpoint> endp,
       _retry_interval(30),
       _read_filters(read_filters),
       _write_filters(write_filters) {
-  set_read_filers(misc::dump_filters(read_filters));
+  //set read filters protobuf
+  stats::center::instance().update(_stats->mutable_read_filters(),
+                                    misc::dump_filters(read_filters));
+  //set write filters protobuf
+  stats::center::instance().update(_stats->mutable_write_filters(),
+                                    misc::dump_filters(write_filters));
+
+
 }
 
 /**

@@ -66,7 +66,9 @@ class failover : public endpoint {
  public:
   failover(std::shared_ptr<io::endpoint> endp,
            std::shared_ptr<multiplexing::subscriber> sbscrbr,
-           std::string const& name);
+           std::string const& name,
+           const std::unordered_set<uint32_t>& read_filters,
+           const std::unordered_set<uint32_t>& write_filters);
   failover(failover const& other) = delete;
   failover& operator=(failover const& other) = delete;
   ~failover();

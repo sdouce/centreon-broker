@@ -27,6 +27,7 @@
 #include "com/centreon/broker/multiplexing/muxer.hh"
 #include "com/centreon/broker/multiplexing/subscriber.hh"
 #include "com/centreon/broker/stats/center.hh"
+#include "com/centreon/broker/misc/misc.hh"
 
 using namespace com::centreon::broker;
 using namespace com::centreon::broker::processing;
@@ -46,7 +47,9 @@ using namespace com::centreon::broker::processing;
  */
 failover::failover(std::shared_ptr<io::endpoint> endp,
                    std::shared_ptr<multiplexing::subscriber> sbscrbr,
-                   std::string const& name)
+                   std::string const& name, 
+                   const std::unordered_set<uint32_t>& read_filters,
+                   const std::unordered_set<uint32_t>& write_filters)
     : endpoint(name),
       _should_exit(false),
       _started(false),
@@ -59,6 +62,15 @@ failover::failover(std::shared_ptr<io::endpoint> endp,
       _retry_interval(30),
       _subscriber(sbscrbr),
       _update(false) {
+  //set read filters protobuf
+  stats::center::instance().update(_stats->mutable_read_filters(),
+                                    misc::dump_filters(read_filters));
+  //set write filters protobuf
+  stats::center::instance().update(_stats->mutable_write_filters(),
+                                    misc::dump_filters(write_filters));
+
+
+
 }
 
 /**
