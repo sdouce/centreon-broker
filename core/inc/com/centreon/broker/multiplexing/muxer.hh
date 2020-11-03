@@ -45,6 +45,7 @@ namespace multiplexing {
  *  @see engine
  */
 class muxer : public io::stream {
+  const std::string _name;
  public:
   typedef std::unordered_set<uint32_t> filters;
 
@@ -86,7 +87,6 @@ class muxer : public io::stream {
   static uint32_t _event_queue_max_size;
   std::unique_ptr<persistent_file> _file;
   mutable std::mutex _mutex;
-  std::string _name;
   bool _persistent;
   std::list<std::shared_ptr<io::data>>::iterator _pos;
   filters _read_filters;

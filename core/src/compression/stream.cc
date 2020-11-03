@@ -177,7 +177,6 @@ bool stream::read(std::shared_ptr<io::data>& data, time_t deadline) {
 void stream::statistics(json11::Json::object& tree) const {
   if (_substream)
     _substream->statistics(tree);
-  return;
 }
 
 /**

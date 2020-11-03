@@ -18,7 +18,6 @@
  */
 #include <gtest/gtest.h>
 #include <cstdlib>
-#include <mutex>
 #include <thread>
 #include "com/centreon/broker/exceptions/shutdown.hh"
 #include "com/centreon/broker/file/cfile.hh"
@@ -34,7 +33,6 @@ using namespace com::centreon::broker::file;
 #define RETENTION_DIR "/tmp/"
 #define RETENTION_FILE "test-concurrent-queue"
 
-static std::mutex mutex;
 
 class read_thread {
  public:
@@ -51,7 +49,6 @@ class read_thread {
 
     do {
       try {
-        std::lock_guard<std::mutex> lock(mutex);
         ret = _file->read(_buf.data() + _current, _size - _current);
         _current += ret;
         ASSERT_TRUE(_current <= _size);
@@ -79,14 +76,12 @@ class write_thread {
 
   void callback() {
     char* buf = new char[_size];
-    for (int i(0); i < _size; ++i)
+    for (int i = 0; i < _size; ++i)
       buf[i] = i & 255;
 
     int wb = 0;
-    for (int j(0); j < _size; j += wb) {
-      std::unique_lock<std::mutex> lock(mutex);
+    for (int j = 0; j < _size; j += wb) {
       wb = _file->write(buf + j, 100);
-      lock.unlock();
       usleep(rand() % 100);
     }
 

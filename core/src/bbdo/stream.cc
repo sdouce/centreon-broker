@@ -678,8 +678,6 @@ std::list<std::string> stream::get_running_config() {
  *  @see input::read()
  */
 bool stream::read(std::shared_ptr<io::data>& d, time_t deadline) {
-  d.reset();
-
   // Read event.
   d.reset();
 

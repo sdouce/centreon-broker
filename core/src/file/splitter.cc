@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <limits>
 #include <list>
+#include <fmt/format.h>
 #include <memory>
 #include <sstream>
 #include "com/centreon/broker/misc/filesystem.hh"
@@ -103,24 +104,24 @@ splitter::splitter(std::string const& path,
       _wid = val;
   }
 
-  if ((_rid == std::numeric_limits<int>::max()) || (_rid < 0))
+  if (_rid == std::numeric_limits<int>::max() || _rid < 0)
     _rid = 0;
 
   // Initial write file opening to allow read file to be opened
   // with no exception.
-  _open_write_file();
+  std::unique_lock<std::mutex> lck(_mutex, std::defer_lock);
+  bool same_id = _wid == _rid;
+  if (same_id)
+    lck.lock();
+  _open_write_file(same_id);
 }
-
-/**
- *  Destructor.
- */
-splitter::~splitter() {}
 
 /**
  *  Close files open by splitter.
  *  If no files are open, nothing is done.
  */
 void splitter::close() {
+  std::lock_guard<std::mutex> lck(_mutex);
   if (_rfile) {
     _rfile->close();
     _rfile.reset();
@@ -140,12 +141,17 @@ void splitter::close() {
  *  @return Number of bytes read.
  */
 long splitter::read(void* buffer, long max_size) {
+  std::unique_lock<std::mutex> lck(_mutex, std::defer_lock);
+  bool same_id = _rid == _wid;
+  if (same_id)
+    lck.lock();
+
   // Open next file if necessary.
   if (!_rfile)
-    _open_read_file();
-  // Otherwise seek to current read position.
-  else
-    _rfile->seek(_roffset);
+    _open_read_file(same_id);
+
+  // Seek to current read position.
+  _rfile->seek(_roffset);
 
   // Read data.
   try {
@@ -179,7 +185,10 @@ long splitter::read(void* buffer, long max_size) {
     // Open next read file.
     else {
       ++_rid;
-      _open_read_file();
+      bool same_id = _rid == _wid;
+      if (same_id)
+        lck.lock();
+      _open_read_file(same_id);
       return read(buffer, max_size);
     }
   }
@@ -194,7 +203,7 @@ long splitter::read(void* buffer, long max_size) {
 void splitter::seek(long offset, fs_file::seek_whence whence) {
   (void)offset;
   (void)whence;
-  throw(exceptions::msg() << "cannot seek within a splitted file");
+  throw exceptions::msg() << "cannot seek within a splitted file";
 }
 
 /**
@@ -216,13 +225,23 @@ long splitter::tell() {
  */
 long splitter::write(void const* buffer, long size) {
   // Open current write file if not already done.
+  std::unique_lock<std::mutex> lck(_mutex, std::defer_lock);
+  bool same_id = _wid == _rid;
+  if (same_id)
+    lck.lock();
+
   if (!_wfile)
-    _open_write_file();
+    _open_write_file(same_id);
   // Open next write file is max file size is reached.
   else if ((_woffset + size) > _max_file_size) {
     _wfile.reset();
+    if (same_id)
+      lck.unlock();
     ++_wid;
-    _open_write_file();
+    same_id = _wid == _rid;
+    if (same_id)
+      lck.lock();
+    _open_write_file(same_id);
   }
   // Otherwise seek to end of file.
   else
@@ -256,11 +275,9 @@ void splitter::flush() {
  *  @param[in] id Current ID.
  */
 std::string splitter::get_file_path(int id) const {
-  if (id) {
-    std::ostringstream oss;
-    oss << _base_path << id;
-    return oss.str();
-  } else
+  if (id)
+    return fmt::format("{}{}", _base_path, id);
+  else
     return _base_path;
 }
 
@@ -333,16 +350,20 @@ void splitter::remove_all_files() {
 }
 
 /**
- *  Open the readable file.
+ *  Open the readable file. When this internal function is called, _mutex
+ *  should already locked if necessary.
+ *
+ *  @param same_id A boolean telling that _wid and _rid are equal (and then
+ *  _mutex is locked).
  */
-void splitter::_open_read_file() {
+void splitter::_open_read_file(bool same_id) {
   _rfile.reset();
 
   // If we reached write-ID and wfile is open, use it.
-  if ((_rid == _wid) && _wfile)
+  if (same_id && _wfile)
     _rfile = _wfile;
-  // Otherwise open next file.
   else {
+  // Otherwise open next file.
     std::string file_path{get_file_path(_rid)};
     try {
       std::shared_ptr<fs_file> new_file{std::make_shared<cfile>(
@@ -359,16 +380,17 @@ void splitter::_open_read_file() {
 }
 
 /**
- *  Open the writable file.
+ *  Open the writable file. If _mutex has to be locked, it must be locked before
+ *  calling this internal function.
  */
-void splitter::_open_write_file() {
+void splitter::_open_write_file(bool same_id) {
   _wfile.reset();
 
   // If we are already reading the latest file, use it.
-  if (_rid == _wid && _rfile)
+  if (same_id && _rfile)
     _wfile = _rfile;
-  // Otherwise open file.
   else {
+  // Otherwise open file.
     std::string file_path(get_file_path(_wid));
     logging::info(logging::high)
         << "file: opening new file '" << file_path.c_str() << "'";
@@ -398,4 +420,3 @@ void splitter::_open_write_file() {
     _woffset = 2 * sizeof(uint32_t);
   }
 }
-

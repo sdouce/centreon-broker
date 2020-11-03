@@ -33,11 +33,17 @@ namespace file {
  *  Wrap calls that work on C FILE streams.
  */
 class cfile : public fs_file {
+  void _open();
+
+  FILE* _stream;
+  const std::string _path;
+  open_mode _mode;
+
  public:
   cfile() = delete;
-  cfile(cfile const& other) = delete;
-  cfile(std::string const& path, fs_file::open_mode mode);
-  cfile& operator=(cfile const& other) = delete;
+  cfile(const cfile&) = delete;
+  cfile(const std::string& path, fs_file::open_mode mode);
+  cfile& operator=(const cfile&) = delete;
   ~cfile();
   void close() override;
   long read(void* buffer, long max_size) override;
@@ -45,13 +51,6 @@ class cfile : public fs_file {
   long tell() override;
   long write(void const* buffer, long size) override;
   void flush() override;
-
- private:
-  void _open();
-
-  FILE* _stream;
-  std::string _path;
-  open_mode _mode;
 };
 }  // namespace file
 

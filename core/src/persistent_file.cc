@@ -66,7 +66,7 @@ persistent_file::~persistent_file() noexcept {}
  *  @return Always return true, as file never times out.
  */
 bool persistent_file::read(std::shared_ptr<io::data>& d, time_t deadline) {
-  return (_substream->read(d, deadline));
+  return _substream->read(d, deadline);
 }
 
 /**
@@ -76,7 +76,6 @@ bool persistent_file::read(std::shared_ptr<io::data>& d, time_t deadline) {
  */
 void persistent_file::statistics(json11::Json::object& tree) const {
   _substream->statistics(tree);
-  return;
 }
 
 /**
@@ -85,7 +84,7 @@ void persistent_file::statistics(json11::Json::object& tree) const {
  *  @param[in] d  Input data.
  */
 int persistent_file::write(std::shared_ptr<io::data> const& d) {
-  return (_substream->write(d));
+  return _substream->write(d);
 }
 
 /**
