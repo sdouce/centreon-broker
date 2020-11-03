@@ -93,7 +93,6 @@ conflict_manager::conflict_manager(database_config const& dbcfg,
       _max_log_queries{0},
       _events_handled{0},
       _speed{},
-      _stats_count_pos{0},
       _ref_count{0},
       _oldest_timestamp{std::numeric_limits<time_t>::max()},
       _stats(stats::center::instance().register_conflict_manager()) {
@@ -143,6 +142,9 @@ bool conflict_manager::init_storage(bool store_in_db,
       _singleton->_max_metrics_queries = queries_per_transaction;
       _singleton->_max_cv_queries = queries_per_transaction;
       _singleton->_max_log_queries = queries_per_transaction;
+      stats::center::instance().update(
+          &ConflictManagerStats::set_max_perfdata_events, _singleton->_stats,
+          static_cast<uint32_t>(queries_per_transaction));
       _singleton->_ref_count++;
       _singleton->_thread =
           std::move(std::thread(&conflict_manager::_callback, _singleton));

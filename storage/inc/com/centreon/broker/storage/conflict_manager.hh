@@ -160,7 +160,6 @@ class conflict_manager {
   int32_t _events_handled;
   float _speed;
   std::array<float, 20> _stats_count;
-  int32_t _stats_count_pos;
 
   /* How many streams are using this conflict_manager? */
   std::atomic<uint32_t> _ref_count;
