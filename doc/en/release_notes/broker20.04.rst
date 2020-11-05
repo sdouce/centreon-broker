@@ -1,4 +1,18 @@
 ========================
+Centreon Broker 20.04.11
+========================
+
+****
+Bugs
+****
+
+Retention files
+===============
+The splitter class is now thread safe and does not need external locks anymore.
+It is also far less strict and allows some reading and some writing at the same
+time.
+
+========================
 Centreon Broker 20.04.10
 ========================
 
