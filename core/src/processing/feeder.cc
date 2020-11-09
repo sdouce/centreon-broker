@@ -152,8 +152,8 @@ void feeder::_callback() noexcept {
         set_queued_events(_subscriber.get_muxer().get_event_queue_size());
         set_event_processing_speed(_event_processing_speed.get_processing_speed());
         set_last_event_at(static_cast<double>(_event_processing_speed.get_last_event_time()));
-        set_unacknowledged_events(_subscriber.get_muxer().get_unacknowledged_events() + 1);
-        set_queue_file_enabled(!_subscriber.get_muxer().is_queue_file_enabled());
+        set_unacknowledged_events(_subscriber.get_muxer().get_unacknowledged_events());
+        set_queue_file_enabled(_subscriber.get_muxer().is_queue_file_enabled());
       }
 
       if (stream_can_read) {
