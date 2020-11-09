@@ -90,6 +90,7 @@ conflict_manager::conflict_manager(database_config const& dbcfg,
       _still_pending_events{0},
       _loop_duration{},
       _speed{},
+      _stats_count_pos{0},
       _ref_count{0},
       _oldest_timestamp{std::numeric_limits<time_t>::max()} {
   log_v2::sql()->debug("conflict_manager: class instanciation");
@@ -379,6 +380,7 @@ void conflict_manager::_callback() {
       _broken = true;
       break;
     }
+    size_t pos = 0;
     try {
       while (!_should_exit()) {
         /* Time to send perfdatas to rrd ; no lock needed, it is this thread
@@ -425,7 +427,6 @@ void conflict_manager::_callback() {
               std::lock_guard<std::mutex> lk(_stat_m);
               _still_pending_events = _fifo.get_events().size();
               _loop_duration = 0;
-              _speed = 0;
               break;
             } else
               log_v2::sql()->trace(
@@ -447,6 +448,7 @@ void conflict_manager::_callback() {
                 type);
 
           ++count;
+          _stats_count[pos]++;
           *std::get<2>(*tpl) = true;
           _fifo.pop();
 
@@ -465,12 +467,20 @@ void conflict_manager::_callback() {
 
             do {
               duration += 1000;
+              pos++;
+              if (pos >= _stats_count.size())
+                pos = 0;
+              _stats_count[pos] = 0;
             } while (timeout > duration);
 
             std::lock_guard<std::mutex> lk(_stat_m);
             _still_pending_events = _fifo.get_events().size();
             _loop_duration = timeout;
-            _speed = (count * 1000.0) / _loop_duration;
+            float s = 0.0f;
+            for (size_t i = 0; i < _stats_count.size(); ++i)
+              s += _stats_count[i];
+
+            _speed = s / _stats_count.size();
           }
         }
 
@@ -488,8 +498,7 @@ void conflict_manager::_callback() {
         /* Are there unresonsive instances? */
         _update_hosts_and_services_of_unresponsive_instances();
 
-        std::chrono::system_clock::time_point now2 =
-            std::chrono::system_clock::now();
+        std::chrono::system_clock::time_point now2 = std::chrono::system_clock::now();
         /* Get some stats */
         {
           std::lock_guard<std::mutex> lk(_stat_m);
@@ -497,10 +506,6 @@ void conflict_manager::_callback() {
           _loop_duration =
               std::chrono::duration_cast<std::chrono::milliseconds>(now2 - now0)
                   .count();
-          if (_loop_duration > 0)
-            _speed = count * 1000.0 / _loop_duration;
-          else
-            _speed = 0;
         }
       }
     } catch (std::exception const& e) {
@@ -650,7 +655,6 @@ json11::Json::object conflict_manager::get_statistics() {
   retval["pending events"] = _still_pending_events;
   retval["sql"] = static_cast<int32_t>(_fifo.get_timeline(sql).size());
   retval["storage"] = static_cast<int32_t>(_fifo.get_timeline(storage).size());
-  retval["stats interval"] = fmt::format("{} ms", _loop_duration);
   retval["speed"] = fmt::format("{} events/s", _speed);
   return retval;
 }
