@@ -68,9 +68,7 @@ feeder::feeder(std::string const& name,
   set_last_connection_attempt(timestamp::now());
   set_last_connection_success(timestamp::now());
   set_state("connecting");
-  set_last_event_at(static_cast<double>(_event_processing_speed.get_last_event_time()));
-
-  std::unique_lock<std::mutex> lck(_state_m);
+    std::unique_lock<std::mutex> lck(_state_m);
   _thread = std::thread(&feeder::_callback, this);
   _state_cv.wait(lck,
                  [& state = this->_state] { return state != feeder::stopped; });
@@ -153,7 +151,9 @@ void feeder::_callback() noexcept {
         fill_stats_time += 5;
         set_queued_events(_subscriber.get_muxer().get_event_queue_size());
         set_event_processing_speed(_event_processing_speed.get_processing_speed());
-
+        set_last_event_at(static_cast<double>(_event_processing_speed.get_last_event_time()));
+        set_unacknowledged_events(_subscriber.get_muxer().get_unacknowledged_events() + 1);
+        set_queue_file_enabled(!_subscriber.get_muxer().is_queue_file_enabled());
       }
 
       if (stream_can_read) {
@@ -291,6 +291,16 @@ void feeder::set_event_processing_speed(double value) {
 void feeder::set_last_event_at(timestamp last_event_at) {
   stats::center::instance().update(_stats->mutable_last_event_at(),
                                    last_event_at.get_time_t());
+}
+
+void feeder::set_queue_file_enabled(bool value) {
+  stats::center::instance().update(&FeederStats::set_queue_file_enabled,
+                                   _stats, value);
+}
+
+void feeder::set_unacknowledged_events(uint32_t value) {
+  stats::center::instance().update(&FeederStats::set_unacknowledged_events,
+                                   _stats, value);
 }
 
 /**

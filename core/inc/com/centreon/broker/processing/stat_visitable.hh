@@ -40,9 +40,9 @@ class stat_visitable {
   std::string _last_error;
   timestamp _last_connection_attempt;
   timestamp _last_connection_success;
-  misc::processing_speed_computer _event_processing_speed;
   std::atomic<char const*> _state;
   std::atomic<uint32_t> _queued_events;
+  misc::processing_speed_computer _event_processing_speed;
 
  protected:
   const std::string _name;
@@ -53,6 +53,7 @@ class stat_visitable {
   virtual void _forward_statistic(json11::Json::object& tree);
 
  public:
+
   stat_visitable(std::string const& name = std::string());
   virtual ~stat_visitable() = default;
   stat_visitable(stat_visitable const& other) = delete;

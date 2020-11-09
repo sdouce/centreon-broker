@@ -68,9 +68,6 @@ failover::failover(std::shared_ptr<io::endpoint> endp,
   //set write filters protobuf
   stats::center::instance().update(_stats->mutable_write_filters(),
                                     misc::dump_filters(write_filters));
-
-  set_unacknowledged_events(_subscriber->get_muxer().get_unacknowledged_events());
-  set_queue_file_enabled(_subscriber->get_muxer().is_queue_file_enabled());
 }
 
 /**
@@ -247,6 +244,8 @@ void failover::run() {
         if (time(nullptr) >= fill_stats_time) {
           fill_stats_time += 5;
           set_queued_events(_subscriber->get_muxer().get_event_queue_size());
+          set_unacknowledged_events(_subscriber->get_muxer().get_unacknowledged_events());
+          set_queue_file_enabled(_subscriber->get_muxer().is_queue_file_enabled());
         }
 
         // Read from endpoint stream.

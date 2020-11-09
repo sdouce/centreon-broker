@@ -64,6 +64,8 @@ message FeederStats {
   string queue_file_path = 10;
   double event_processing_speed = 11;
   google.protobuf.Timestamp last_event_at = 12;
+  bool queue_file_enabled = 13;
+  uint32 unacknowledged_events = 14;
 }
 
 message ConflictManagerStats {

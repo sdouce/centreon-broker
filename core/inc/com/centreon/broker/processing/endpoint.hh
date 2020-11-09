@@ -29,7 +29,6 @@ namespace processing {
 class endpoint : public stat_visitable {
  protected:
   EndpointStats* _stats;
-  misc::processing_speed_computer _event_processing_speed;
 
  public:
   endpoint(const std::string& name);
