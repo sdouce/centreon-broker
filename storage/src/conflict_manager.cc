@@ -525,7 +525,6 @@ void conflict_manager::_callback() {
             }
           }
         }
-
         log_v2::sql()->debug("{} new events to treat", count);
         /* Here, just before looping, we commit. */
         _finish_actions();
