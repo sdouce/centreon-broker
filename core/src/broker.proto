@@ -63,7 +63,7 @@ message FeederStats {
   string memory_file_path = 9;
   string queue_file_path = 10;
   double event_processing_speed = 11;
-  double last_event_at = 12;
+  google.protobuf.Timestamp last_event_at = 12;
 }
 
 message ConflictManagerStats {

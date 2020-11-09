@@ -517,6 +517,7 @@ void failover::_forward_statistic(json11::Json::object& tree) {
   json11::Json::object subtree;
   if (_failover)
     _failover->stats(subtree);
+
   tree["failover"] = subtree;
 }
 

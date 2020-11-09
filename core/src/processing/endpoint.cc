@@ -26,7 +26,9 @@ using namespace com::centreon::broker::processing;
 
 endpoint::endpoint(const std::string& name)
       : stat_visitable(name),
-        _stats(stats::center::instance().register_endpoint(name)) {}
+        _stats(stats::center::instance().register_endpoint(name)) {
+
+}
 
 
 void endpoint::set_read_filers(const std::string& rf) {

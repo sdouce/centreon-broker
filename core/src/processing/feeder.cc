@@ -68,7 +68,6 @@ feeder::feeder(std::string const& name,
   set_last_connection_attempt(timestamp::now());
   set_last_connection_success(timestamp::now());
   set_state("connecting");
-  set_event_processing_speed(_event_processing_speed.get_processing_speed());
   set_last_event_at(static_cast<double>(_event_processing_speed.get_last_event_time()));
 
   std::unique_lock<std::mutex> lck(_state_m);
@@ -153,6 +152,8 @@ void feeder::_callback() noexcept {
       if (time(nullptr) >= fill_stats_time) {
         fill_stats_time += 5;
         set_queued_events(_subscriber.get_muxer().get_event_queue_size());
+        set_event_processing_speed(_event_processing_speed.get_processing_speed());
+
       }
 
       if (stream_can_read) {
@@ -287,9 +288,9 @@ void feeder::set_event_processing_speed(double value) {
                                    _stats, value);
 }
 
-void feeder::set_last_event_at(double value) {
-  stats::center::instance().update(&FeederStats::set_last_event_at,
-                                   _stats, value);
+void feeder::set_last_event_at(timestamp last_event_at) {
+  stats::center::instance().update(_stats->mutable_last_event_at(),
+                                   last_event_at.get_time_t());
 }
 
 /**
