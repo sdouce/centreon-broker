@@ -25,13 +25,54 @@ using namespace com::centreon::broker;
 using namespace com::centreon::broker::processing;
 
 endpoint::endpoint(const std::string& name)
-      : stat_visitable(name),
-        _stats(stats::center::instance().register_endpoint(name)) {
+      : _name(name),
+        _stats(stats::center::instance().register_endpoint(name)) {}
 
+/**
+ *  Get this thread name.
+ *
+ *  @return  This thread name.
+ */
+std::string const& endpoint::get_name() const {
+  return _name;
 }
 
+/**
+ *  Tick the event processing computation.
+ */
+void endpoint::tick(uint32_t events) {
+  std::lock_guard<std::mutex> lock(_stat_mutex);
+  _event_processing_speed.tick(events);
+}
 
-void endpoint::set_read_filers(const std::string& rf) {
+/**
+ *  @brief Delegate statistic to subojects.
+ *
+ *  Do nothing by default.
+ *
+ *  @param[in] tree  The tree gathering the stats.
+ */
+void endpoint::_forward_statistic(json11::Json::object& tree) {
+
+  (void)tree;
+}
+
+void endpoint::stats(json11::Json::object& tree) {
+  std::lock_guard<std::mutex> lock(_stat_mutex);
+  tree["state"] = std::string(_state);
+  tree["read_filters"] = ""; 
+  tree["write_filters"]  = ""; 
+  tree["event_processing_speed"] = _event_processing_speed.get_processing_speed();
+  tree["last_connection_attempt"] = static_cast<double>(_last_connection_attempt);
+  tree["last_connection_success"] = static_cast<double>(_last_connection_success);
+  tree["last_event_at"] = static_cast<double>(_event_processing_speed.get_last_event_time());
+  tree["queued_events"] = 0; 
+
+  // Forward the stats.
+  _forward_statistic(tree);
+}
+
+void endpoint::set_read_filters(const std::string& rf) {
   stats::center::instance().update(_stats->mutable_read_filters(), rf);
 }
 

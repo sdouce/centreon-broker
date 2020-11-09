@@ -158,7 +158,6 @@ uint32_t acceptor::_get_queued_events() const {
 }
 
 /**
- *  Start bthread.
  */
 void acceptor::start() {
   std::unique_lock<std::mutex> lock(_state_m);
