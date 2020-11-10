@@ -102,6 +102,12 @@ message EndpointStats {
   uint32 peers = 20;
 }
 
+message ModuleStats {
+  string name   = 1;
+  uint32 size   = 2;
+  string state  = 3;
+}
+
 message ThreadPool {
   string latency = 1;
   uint32 size = 2;
