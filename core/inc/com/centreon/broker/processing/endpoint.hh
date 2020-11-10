@@ -60,11 +60,9 @@ class endpoint {
  public:
   endpoint(const std::string& name);
   virtual ~endpoint() noexcept {};
-  //~endpoint();
   virtual void update() {}
   virtual void start() = 0;
   virtual void exit() = 0;
-  //void set_name(const std::string& name);
   void set_read_filters(const std::string& rf);
   void set_write_filters(const std::string& wf);
   void set_event_processing_speed(double value);

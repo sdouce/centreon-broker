@@ -240,7 +240,10 @@ void failover::run() {
         if (time(nullptr) >= fill_stats_time) {
           fill_stats_time += 5;
           set_queued_events(_subscriber->get_muxer().get_event_queue_size());
-          set_event_processing_speed(_event_processing_speed.get_processing_speed());
+          set_event_processing_speed(
+              _event_processing_speed.get_processing_speed());
+          set_last_event_at(static_cast<double>(
+              _event_processing_speed.get_last_event_time()));
           set_unacknowledged_events(
               _subscriber->get_muxer().get_unacknowledged_events());
           set_queue_file_enabled(

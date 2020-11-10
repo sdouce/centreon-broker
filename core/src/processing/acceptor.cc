@@ -47,20 +47,18 @@ acceptor::acceptor(std::shared_ptr<io::endpoint> endp,
       _retry_interval(30),
       _read_filters(read_filters),
       _write_filters(write_filters) {
-  //set read filters protobuf
+  // set read filters protobuf
   stats::center::instance().update(_stats->mutable_read_filters(),
-                                    misc::dump_filters(read_filters));
-  //set write filters protobuf
+                                   misc::dump_filters(read_filters));
+  // set write filters protobuf
   stats::center::instance().update(_stats->mutable_write_filters(),
-                                    misc::dump_filters(write_filters));
+                                   misc::dump_filters(write_filters));
 }
 
 /**
  *  Destructor.
  */
-acceptor::~acceptor() {
-  exit();
-}
+acceptor::~acceptor() { exit(); }
 
 /**
  *  Accept a new incoming connection.
@@ -79,8 +77,8 @@ void acceptor::accept() {
 
     std::lock_guard<std::mutex> lock(_stat_mutex);
     _feeders.push_back(f);
-    log_v2::core()->trace("Currently {} connections to acceptor '{}'",
-                          _feeders.size(), _name);
+    log_v2::core()->trace(
+        "Currently {} connections to acceptor '{}'", _feeders.size(), _name);
   }
 }
 
@@ -153,9 +151,7 @@ void acceptor::_set_listening(bool listening) noexcept {
   set_state(listening ? "listening" : "disconnected");
 }
 
-uint32_t acceptor::_get_queued_events() const {
-  return 0;
-}
+uint32_t acceptor::_get_queued_events() const { return 0; }
 
 /**
  */
@@ -180,12 +176,13 @@ void acceptor::_callback() noexcept {
       _set_listening(true);
       // Try to accept connection.
       accept();
-    } catch (std::exception const& e) {
+    }
+    catch (std::exception const& e) {
       _set_listening(false);
       // Log error.
-      logging::error(logging::high)
-          << "acceptor: endpoint '" << _name
-          << "' could not accept client: " << e.what();
+      logging::error(logging::high) << "acceptor: endpoint '" << _name
+                                    << "' could not accept client: "
+                                    << e.what();
 
       // Sleep a while before reconnection.
       logging::info(logging::medium)
@@ -201,11 +198,13 @@ void acceptor::_callback() noexcept {
     {
       std::lock_guard<std::mutex> lock(_stat_mutex);
       for (auto it = _feeders.begin(), end = _feeders.end(); it != end;) {
-        log_v2::core()->trace("acceptor '{}' feeder '{}' state {}", _name,
-                              (*it)->get_name(), (*it)->get_state());
+        log_v2::core()->trace("acceptor '{}' feeder '{}' state {}",
+                              _name,
+                              (*it)->get_name(),
+                              (*it)->get_state());
         if ((*it)->is_finished()) {
-          log_v2::core()->info("removing '{}' from acceptor '{}'",
-                               (*it)->get_name(), _name);
+          log_v2::core()->info(
+              "removing '{}' from acceptor '{}'", (*it)->get_name(), _name);
           it = _feeders.erase(it);
         } else
           ++it;

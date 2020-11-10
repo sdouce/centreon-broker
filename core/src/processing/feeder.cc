@@ -57,21 +57,21 @@ feeder::feeder(std::string const& name,
       _subscriber(name, false, read_filters, write_filters),
       _stats(stats::center::instance().register_feeder(name)) {
   if (!client)
-    throw exceptions::msg()
-        << "could not process '" << _name << "' with no client stream";
+    throw exceptions::msg() << "could not process '" << _name
+                            << "' with no client stream";
 
   stats::center::instance().update(_stats->mutable_read_filters(),
-                                    misc::dump_filters(read_filters));
+                                   misc::dump_filters(read_filters));
   stats::center::instance().update(_stats->mutable_write_filters(),
-                                    misc::dump_filters(write_filters));
+                                   misc::dump_filters(write_filters));
 
   set_last_connection_attempt(timestamp::now());
   set_last_connection_success(timestamp::now());
   set_state("connecting");
-    std::unique_lock<std::mutex> lck(_state_m);
+  std::unique_lock<std::mutex> lck(_state_m);
   _thread = std::thread(&feeder::_callback, this);
   _state_cv.wait(lck,
-                 [& state = this->_state] { return state != feeder::stopped; });
+                 [&state = this->_state] { return state != feeder::stopped; });
 }
 
 /**
@@ -110,7 +110,7 @@ bool feeder::is_finished() const noexcept {
  *
  *  @return  The write filters used by the feeder.
  */
-//std::string const& feeder::_get_write_filters() const {
+// std::string const& feeder::_get_write_filters() const {
 //  return _subscriber.get_muxer().get_write_filters_str();
 //}
 
@@ -150,9 +150,12 @@ void feeder::_callback() noexcept {
       if (time(nullptr) >= fill_stats_time) {
         fill_stats_time += 5;
         set_queued_events(_subscriber.get_muxer().get_event_queue_size());
-        set_event_processing_speed(_event_processing_speed.get_processing_speed());
-        set_last_event_at(static_cast<double>(_event_processing_speed.get_last_event_time()));
-        set_unacknowledged_events(_subscriber.get_muxer().get_unacknowledged_events());
+        set_event_processing_speed(
+            _event_processing_speed.get_processing_speed());
+        set_last_event_at(
+            static_cast<double>(_event_processing_speed.get_last_event_time()));
+        set_unacknowledged_events(
+            _subscriber.get_muxer().get_unacknowledged_events());
         set_queue_file_enabled(_subscriber.get_muxer().is_queue_file_enabled());
       }
 
@@ -160,7 +163,8 @@ void feeder::_callback() noexcept {
         try {
           misc::read_lock lock(_client_m);
           timed_out_stream = !_client->read(d, 0);
-        } catch (exceptions::shutdown const& e) {
+        }
+        catch (exceptions::shutdown const& e) {
           stream_can_read = false;
         }
         if (d) {
@@ -181,9 +185,10 @@ void feeder::_callback() noexcept {
       if (muxer_can_read)
         try {
           timed_out_muxer = !_subscriber.get_muxer().read(d, 0);
-        } catch (exceptions::shutdown const& e) {
-          muxer_can_read = false;
         }
+      catch (exceptions::shutdown const& e) {
+        muxer_can_read = false;
+      }
       if (d) {
         log_v2::processing()->trace(
             "feeder '{}': sending 1 event from muxer to client", _name);
@@ -204,16 +209,19 @@ void feeder::_callback() noexcept {
         ::usleep(100000);
       }
     }
-  } catch (exceptions::shutdown const& e) {
+  }
+  catch (exceptions::shutdown const& e) {
     // Normal termination.
     (void)e;
     log_v2::core()->info("feeder '{}' shut down", _name);
-  } catch (std::exception const& e) {
+  }
+  catch (std::exception const& e) {
     logging::error(logging::medium)
         << "feeder: error occured while processing client '" << _name
         << "': " << e.what();
     set_last_error(e.what());
-  } catch (...) {
+  }
+  catch (...) {
     logging::error(logging::high)
         << "feeder: unknown error occured while processing client '" << _name
         << "'";
@@ -236,7 +244,7 @@ void feeder::_callback() noexcept {
   log_v2::processing()->info("feeder: thread of client '{}' will exit", _name);
 }
 
-//uint32_t feeder::_get_queued_events() const {
+// uint32_t feeder::_get_queued_events() const {
 //  return _subscriber.get_muxer().get_event_queue_size();
 //}
 
@@ -268,15 +276,18 @@ void feeder::set_state(const std::string& state) {
 }
 
 void feeder::set_queued_events(uint32_t events) {
-  stats::center::instance().update(&FeederStats::set_queued_events, _stats, events);
+  stats::center::instance().update(
+      &FeederStats::set_queued_events, _stats, events);
 }
 
 void feeder::set_last_connection_attempt(timestamp time) {
-  stats::center::instance().update(_stats->mutable_last_connection_attempt(), time.get_time_t());
+  stats::center::instance().update(_stats->mutable_last_connection_attempt(),
+                                   time.get_time_t());
 }
 
 void feeder::set_last_connection_success(timestamp time) {
-  stats::center::instance().update(_stats->mutable_last_connection_success(), time.get_time_t());
+  stats::center::instance().update(_stats->mutable_last_connection_success(),
+                                   time.get_time_t());
 }
 
 void feeder::set_last_error(const std::string& last_error) {
@@ -284,8 +295,8 @@ void feeder::set_last_error(const std::string& last_error) {
 }
 
 void feeder::set_event_processing_speed(double value) {
-  stats::center::instance().update(&FeederStats::set_event_processing_speed,
-                                   _stats, value);
+  stats::center::instance().update(
+      &FeederStats::set_event_processing_speed, _stats, value);
 }
 
 void feeder::set_last_event_at(timestamp last_event_at) {
@@ -294,13 +305,13 @@ void feeder::set_last_event_at(timestamp last_event_at) {
 }
 
 void feeder::set_queue_file_enabled(bool value) {
-  stats::center::instance().update(&FeederStats::set_queue_file_enabled,
-                                   _stats, value);
+  stats::center::instance().update(
+      &FeederStats::set_queue_file_enabled, _stats, value);
 }
 
 void feeder::set_unacknowledged_events(uint32_t value) {
-  stats::center::instance().update(&FeederStats::set_unacknowledged_events,
-                                   _stats, value);
+  stats::center::instance().update(
+      &FeederStats::set_unacknowledged_events, _stats, value);
 }
 
 /**
@@ -310,14 +321,20 @@ void feeder::set_unacknowledged_events(uint32_t value) {
  */
 void feeder::stats(json11::Json::object& tree) {
   std::lock_guard<std::mutex> lock(_stat_mutex);
-  tree["state"] = ""; // FIXME DBR: std::string(_state); It is now is protobuf object
-  tree["read_filters"] = "";  //FIXME DBR: _get_read_filters();
-  tree["write_filters"]  = ""; //FIXME DBR: _get_write_filters();
-  tree["event_processing_speed"] = _event_processing_speed.get_processing_speed();
-  tree["last_connection_attempt"] = -1; //FIXME DBR: static_cast<double>(_last_connection_attempt);
-  tree["last_connection_success"] = -1; //FIXME DBR: static_cast<double>(_last_connection_success);
-  tree["last_event_at"] = static_cast<double>(_event_processing_speed.get_last_event_time());
-  tree["queued_events"] = 0; //FIXME DBR: static_cast<int>(_get_queued_events());
+  tree["state"] =
+      "";  // FIXME DBR: std::string(_state); It is now is protobuf object
+  tree["read_filters"] = "";  // FIXME DBR: _get_read_filters();
+  tree["write_filters"] = "";  // FIXME DBR: _get_write_filters();
+  tree["event_processing_speed"] =
+      _event_processing_speed.get_processing_speed();
+  tree["last_connection_attempt"] =
+      -1;  // FIXME DBR: static_cast<double>(_last_connection_attempt);
+  tree["last_connection_success"] =
+      -1;  // FIXME DBR: static_cast<double>(_last_connection_success);
+  tree["last_event_at"] =
+      static_cast<double>(_event_processing_speed.get_last_event_time());
+  tree["queued_events"] =
+      0;  // FIXME DBR: static_cast<int>(_get_queued_events());
 
   // Forward the stats.
   _forward_statistic(tree);
@@ -331,6 +348,4 @@ void feeder::tick(uint32_t events) {
   _event_processing_speed.tick(events);
 }
 
-const std::string& feeder::get_name() const {
-  return _name;
-}
+const std::string& feeder::get_name() const { return _name; }
