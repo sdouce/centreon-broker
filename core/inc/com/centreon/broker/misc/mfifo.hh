@@ -122,18 +122,11 @@ class mfifo {
       t.pop_front();
       ++count;
     }
-    log_v2::sql()->debug("{} elements removed from fifo (idx {})", count, idx);
-    std::list<bool> lst;
-    int i = 0;
-    auto it = t.begin();
-    while (it != t.end() && i < 20) {
-      lst.push_back(*it);
-      i++;
-    }
-    log_v2::sql()->trace("{} are the next in timeline", fmt::join(lst, ","));
+    log_v2::sql()->trace("{} elements removed from fifo (idx {})", count, idx);
     _pending_elements -= count;
     _ack[idx] += count;
   }
+
 
   /**
    * @brief Return the timeline of the idx input source.
