@@ -96,11 +96,20 @@ conflict_manager::conflict_manager(database_config const& dbcfg,
       _ref_count{0},
       _oldest_timestamp{std::numeric_limits<time_t>::max()},
       _stats(stats::center::instance().register_conflict_manager()) {
-  stats::center::instance().update(&ConflictManagerStats::set_loop_timeout,
-                                   _stats, _loop_timeout);
   stats::center::instance().update(
-      &ConflictManagerStats::set_max_pending_events, _stats,
+      &ConflictManagerStats::set_loop_timeout, _stats, _loop_timeout);
+  stats::center::instance().update(
+      &ConflictManagerStats::set_max_pending_events,
+      _stats,
       static_cast<uint32_t>(_max_pending_queries));
+  stats::center::instance().update(
+      &ConflictManagerStats::set_max_perfdata_events,
+      _stats,
+      static_cast<uint32_t>(_max_perfdata_queries));
+  stats::center::instance().update(&ConflictManagerStats::set_loop_timeout,
+                                   _stats,
+                                   static_cast<uint32_t>(_loop_timeout));
+
   log_v2::sql()->debug("conflict_manager: class instanciation");
 }
 
@@ -132,8 +141,9 @@ bool conflict_manager::init_storage(bool store_in_db,
 
   for (;;) {
     /* The loop is waiting for 1s or for _mysql to be initialized */
-    if (_init_cv.wait_for(lk, std::chrono::seconds(1),
-                          [&]() { return _singleton != nullptr; })) {
+    if (_init_cv.wait_for(lk, std::chrono::seconds(1), [&]() {
+          return _singleton != nullptr;
+        })) {
       std::lock_guard<std::mutex> lk(_singleton->_loop_m);
       _singleton->_store_in_db = store_in_db;
       _singleton->_rrd_len = rrd_len;
@@ -143,7 +153,8 @@ bool conflict_manager::init_storage(bool store_in_db,
       _singleton->_max_cv_queries = queries_per_transaction;
       _singleton->_max_log_queries = queries_per_transaction;
       stats::center::instance().update(
-          &ConflictManagerStats::set_max_perfdata_events, _singleton->_stats,
+          &ConflictManagerStats::set_max_perfdata_events,
+          _singleton->_stats,
           static_cast<uint32_t>(queries_per_transaction));
       _singleton->_ref_count++;
       _singleton->_thread =
@@ -179,9 +190,10 @@ void conflict_manager::_load_deleted_instances() {
     mysql_result res(promise.get_future().get());
     while (_mysql.fetch_row(res))
       _cache_deleted_instance_id.insert(res.value_as_u32(0));
-  } catch (std::exception const& e) {
-    throw exceptions::msg()
-        << "could not get list of deleted instances: " << e.what();
+  }
+  catch (std::exception const& e) {
+    throw exceptions::msg() << "could not get list of deleted instances: "
+                            << e.what();
   }
 }
 
@@ -207,7 +219,8 @@ void conflict_manager::_load_caches() {
         stored_timestamp& ts = _stored_timestamps[instance_id];
         ts.set_timestamp(timestamp(std::numeric_limits<time_t>::max()));
       }
-    } catch (std::exception const& e) {
+    }
+    catch (std::exception const& e) {
       throw exceptions::msg()
           << "conflict_manager: could not get the list of outdated instances: "
           << e.what();
@@ -240,17 +253,21 @@ void conflict_manager::_load_caches() {
         uint32_t service_id(res.value_as_u32(2));
         log_v2::perfdata()->debug(
             "storage: loaded index {} of ({}, {}) with rrd_len={}",
-            info.index_id, host_id, service_id, info.rrd_retention);
+            info.index_id,
+            host_id,
+            service_id,
+            info.rrd_retention);
         _index_cache[{host_id, service_id}] = std::move(info);
 
         // Create the metric mapping.
         std::shared_ptr<storage::index_mapping> im{
-            std::make_shared<storage::index_mapping>(info.index_id, host_id,
-                                                     service_id)};
+            std::make_shared<storage::index_mapping>(
+                info.index_id, host_id, service_id)};
         multiplexing::publisher pblshr;
         pblshr.write(im);
       }
-    } catch (std::exception const& e) {
+    }
+    catch (std::exception const& e) {
       throw broker::exceptions::msg()
           << "storage: could not fetch index list from data DB: " << e.what();
     }
@@ -268,7 +285,8 @@ void conflict_manager::_load_caches() {
       mysql_result res(promise.get_future().get());
       while (_mysql.fetch_row(res))
         _cache_host_instance[res.value_as_u32(0)] = res.value_as_u32(1);
-    } catch (std::exception const& e) {
+    }
+    catch (std::exception const& e) {
       throw exceptions::msg()
           << "SQL: could not get the list of host/instance pairs: " << e.what();
     }
@@ -286,7 +304,8 @@ void conflict_manager::_load_caches() {
       mysql_result res(promise.get_future().get());
       while (_mysql.fetch_row(res))
         _hostgroup_cache.insert(res.value_as_u32(0));
-    } catch (std::exception const& e) {
+    }
+    catch (std::exception const& e) {
       throw exceptions::msg()
           << "SQL: could not get the list of hostgroups id: " << e.what();
     }
@@ -304,7 +323,8 @@ void conflict_manager::_load_caches() {
       mysql_result res(promise.get_future().get());
       while (_mysql.fetch_row(res))
         _servicegroup_cache.insert(res.value_as_u32(0));
-    } catch (std::exception const& e) {
+    }
+    catch (std::exception const& e) {
       throw exceptions::msg()
           << "SQL: could not get the list of servicegroups id: " << e.what();
     }
@@ -346,7 +366,8 @@ void conflict_manager::_load_caches() {
         info.type = res.value_as_str(13)[0] - '0';
         _metric_cache[{res.value_as_u32(1), res.value_as_str(2)}] = info;
       }
-    } catch (std::exception const& e) {
+    }
+    catch (std::exception const& e) {
       throw exceptions::msg()
           << "conflict_manager: could not get the list of metrics: "
           << e.what();
@@ -363,7 +384,9 @@ void conflict_manager::update_metric_info_cache(uint32_t index_id,
     log_v2::perfdata()->info(
         "conflict_manager: updating metric '{}' of id {} at index {} to "
         "metric_type {}",
-        metric_name, metric_id, index_id,
+        metric_name,
+        metric_id,
+        index_id,
         perfdata::data_type_name[metric_type]);
     std::lock_guard<std::mutex> lock(_metric_cache_m);
     it->second.type = metric_type;
@@ -377,7 +400,8 @@ void conflict_manager::update_metric_info_cache(uint32_t index_id,
 void conflict_manager::_callback() {
   try {
     _load_caches();
-  } catch (std::exception const& e) {
+  }
+  catch (std::exception const& e) {
     logging::error(logging::high) << "error while loading caches: " << e.what();
     _broken = true;
   }
@@ -386,7 +410,8 @@ void conflict_manager::_callback() {
     /* Are there index_data to remove? */
     try {
       _check_deleted_index();
-    } catch (std::exception const& e) {
+    }
+    catch (std::exception const& e) {
       logging::error(logging::high)
           << "conflict_manager: error while checking deleted indexes: "
           << e.what();
@@ -605,7 +630,9 @@ int32_t conflict_manager::send_event(conflict_manager::stream_type c,
 
   log_v2::sql()->trace(
       "conflict_manager: send_event category:{}, element:{} from {}",
-      e->type() >> 16, e->type() & 0xffff, c == 0 ? "sql" : "storage");
+      e->type() >> 16,
+      e->type() & 0xffff,
+      c == 0 ? "sql" : "storage");
 
   return _fifo.push(c, e);
 }
@@ -728,7 +755,8 @@ void conflict_manager::unload() {
     } else {
       log_v2::sql()->info(
           "conflict_manager: still {} stream{} using the conflict manager.",
-          count, count > 1 ? "s" : "");
+          count,
+          count > 1 ? "s" : "");
     }
   }
 }
