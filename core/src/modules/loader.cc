@@ -21,6 +21,7 @@
 #include "com/centreon/broker/exceptions/msg.hh"
 #include "com/centreon/broker/logging/logging.hh"
 #include "com/centreon/broker/misc/filesystem.hh"
+#include "com/centreon/broker/stats/center.hh"
 
 using namespace com::centreon::broker;
 using namespace com::centreon::broker::modules;
@@ -30,6 +31,12 @@ using namespace com::centreon::broker::modules;
  *           Public Methods            *
  *                                     *
  **************************************/
+
+/**
+ *  Constructor.
+ */
+loader::loader() {}
+
 
 /**
  *  Destructor.

@@ -37,12 +37,11 @@ namespace modules {
  */
 class loader {
   std::map<std::string, std::shared_ptr<handle> > _handles;
-
  public:
   typedef std::map<std::string, std::shared_ptr<handle> >::iterator
       iterator;
 
-  loader() = default;
+  loader();
   loader(loader const& l) = delete;
   ~loader();
   loader& operator=(loader const& l) = delete;

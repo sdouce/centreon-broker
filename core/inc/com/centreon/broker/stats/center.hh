@@ -66,6 +66,7 @@ class center {
   EndpointStats* register_endpoint(const std::string& name);
   FeederStats* register_feeder(const std::string& name);
   ConflictManagerStats* register_conflict_manager();
+  ModuleStats* register_modules();
 
   /**
    * @brief Set the value pointed by ptr to the value value.

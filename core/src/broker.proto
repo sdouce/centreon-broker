@@ -104,7 +104,7 @@ message EndpointStats {
 
 message ModuleStats {
   string name   = 1;
-  uint32 size   = 2;
+  string size   = 2;
   string state  = 3;
 }
 
@@ -122,4 +122,5 @@ message BrokerStats {
   repeated EndpointStats endpoint = 6;
   repeated FeederStats feeder = 7;
   ConflictManagerStats conflict_manager = 8;
+  repeated ModuleStats modules = 9;
 }

@@ -24,10 +24,14 @@
 
 #include "com/centreon/broker/version.hh"
 #include "com/centreon/broker/config/applier/state.hh"
+#include "com/centreon/broker/modules/loader.hh"
+#include "com/centreon/broker/config/applier/modules.hh"
+#include "com/centreon/broker/misc/filesystem.hh"
 
 using namespace com::centreon::broker;
 using namespace com::centreon::broker::stats;
 using namespace google::protobuf::util;
+using namespace com::centreon::broker::modules;
 
 center& center::instance() {
   static center inst;
@@ -36,10 +40,26 @@ center& center::instance() {
 
 center::center() : _strand(pool::instance().io_context()) {
   *_stats.mutable_version() = version::string;
-  *_stats.mutable_asio_version() =
-      fmt::format("{}.{}.{}", ASIO_VERSION / 100000, ASIO_VERSION / 100 % 1000,
-                  ASIO_VERSION % 100);
+  *_stats.mutable_asio_version() = fmt::format("{}.{}.{}",
+                                               ASIO_VERSION / 100000,
+                                               ASIO_VERSION / 100 % 1000,
+                                               ASIO_VERSION % 100);
   _stats.set_pid(getpid());
+
+  /* Bringing modules statistics */
+  config::applier::modules& mod_applier(config::applier::modules::instance());
+  for (config::applier::modules::iterator it(mod_applier.begin()),
+       end(mod_applier.end());
+       it != end;
+       ++it) {
+    auto m = _stats.add_modules();
+    *m->mutable_name() = it->first;
+    *m->mutable_size() =
+        fmt::format("{}B", misc::filesystem::file_size(it->first));
+    *m->mutable_state() = "loaded";
+  }
+
+  /*Start the thread pool */
   pool::instance().start_stats(_stats.mutable_pool_stats());
 }
 
@@ -60,9 +80,9 @@ FeederStats* center::register_feeder(const std::string& name) {
     auto ep = _stats.add_feeder();
     ep->set_name(name);
     *ep->mutable_memory_file_path() = fmt::format(
-      "{}.memory.{}", config::applier::state::instance().cache_dir(), name);
+        "{}.memory.{}", config::applier::state::instance().cache_dir(), name);
     *ep->mutable_queue_file_path() = fmt::format(
-      "{}.queue.{}", config::applier::state::instance().cache_dir(), name);
+        "{}.queue.{}", config::applier::state::instance().cache_dir(), name);
 
     p.set_value(ep);
   });
@@ -86,9 +106,9 @@ EndpointStats* center::register_endpoint(const std::string& name) {
     auto ep = _stats.add_endpoint();
     ep->set_name(name);
     *ep->mutable_memory_file_path() = fmt::format(
-      "{}.memory.{}", config::applier::state::instance().cache_dir(), name);
+        "{}.memory.{}", config::applier::state::instance().cache_dir(), name);
     *ep->mutable_queue_file_path() = fmt::format(
-      "{}.queue.{}", config::applier::state::instance().cache_dir(), name);
+        "{}.queue.{}", config::applier::state::instance().cache_dir(), name);
 
     p.set_value(ep);
   });
@@ -114,6 +134,24 @@ ConflictManagerStats* center::register_conflict_manager() {
 }
 
 /**
+ * @brief To allow the conflict manager to send statistics, it has to call this
+ * function to get a pointer to its statistics container.
+ * It is prohibited to directly write into the returned pointer. We must use
+ * the center member functions for this purpose.
+ *
+ * @return A pointer to the module statistics.
+ */
+ModuleStats* center::register_modules() {
+  std::promise<ModuleStats*> p;
+  std::future<ModuleStats*> retval = p.get_future();
+  _strand.post([this, &p] {
+    auto m = _stats.add_modules();
+    p.set_value(m);
+  });
+  return retval.get();
+}
+
+/**
  * @brief Convert the protobuf statistics object to a json string.
  *
  * @return a string with the object in json format.
@@ -121,14 +159,17 @@ ConflictManagerStats* center::register_conflict_manager() {
 std::string center::to_string() {
   std::promise<std::string> p;
   std::future<std::string> retval = p.get_future();
-  _strand.post([& s = this->_stats, &p] {
-    const JsonPrintOptions options;
-    std::string retval;
-    std::time_t now;
-    time(&now);
-    s.mutable_now()->set_seconds(now);
-    MessageToJsonString(s, &retval, options);
-    p.set_value(std::move(retval));
-  });
+  _strand.post([
+    &s = this->_stats,
+    &p
+  ] {
+      const JsonPrintOptions options;
+      std::string retval;
+      std::time_t now;
+      time(&now);
+      s.mutable_now()->set_seconds(now);
+      MessageToJsonString(s, &retval, options);
+      p.set_value(std::move(retval));
+    });
   return retval.get();
 }
