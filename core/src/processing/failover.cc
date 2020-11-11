@@ -171,7 +171,7 @@ void failover::run() {
         log_v2::processing()->debug(
             "failover: buffering data for endpoint '{}' ({}s)", _name,
             _buffering_timeout);
-        _update_status("buffering data");
+        set_status("buffering data");
 
         // Wait loop.
         // FIXME SGA: condvar should be more elegant...
@@ -303,7 +303,7 @@ void failover::run() {
                 "failover: writing event of multiplexing engine to endpoint "
                 "'{}'",
                 _name);
-            _update_status("writing event to stream");
+            set_status("writing event to stream");
             int we(0);
 
             try {
