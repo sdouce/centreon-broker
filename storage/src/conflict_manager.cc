@@ -467,8 +467,16 @@ void conflict_manager::_callback() {
          * it it is necessary for cleanup operations.
          */
         while (count < _max_pending_queries && timeout < timeout_limit) {
-          if (events.empty())
+          stats::center::instance().update(
+                  _stats->mutable_state(), std::string("handling queries"));
+
+          if (events.empty()) {
             events = _fifo.first_events();
+            stats::center::instance().update(
+                &ConflictManagerStats::set_handled_events, _stats, static_cast<uint32_t>(events.size()));
+  stats::center::instance().update(
+      &ConflictManagerStats::set_waiting_events, _stats, static_cast<uint32_t>(_fifo.get_size()));
+          }
           if (events.empty()) {
             // Let's wait for 500ms.
             if (_should_exit())
@@ -540,6 +548,19 @@ void conflict_manager::_callback() {
 
             /* Get some stats each second */
             if (timeout >= duration) {
+  stats::center::instance().update(
+      &ConflictManagerStats::set_handled_events, _stats, static_cast<uint32_t>(events.size()));
+  stats::center::instance().update(
+      &ConflictManagerStats::set_waiting_events, _stats, static_cast<uint32_t>(_fifo.get_size()));
+              /* If there are too many perfdata to send, let's send them... */
+              if (_perfdata_queue.size() > _max_perfdata_queries) {
+          stats::center::instance().update(
+                  _stats->mutable_state(), std::string("inserting perfdata"));
+                _insert_perfdatas();
+          stats::center::instance().update(
+                  _stats->mutable_state(), std::string("handling queries"));
+              }
+
               do {
                 duration += 1000;
                 pos++;
@@ -548,36 +569,32 @@ void conflict_manager::_callback() {
                 _stats_count[pos] = 0;
               } while (timeout > duration);
 
-              _events_handled = events.size();
               float s = 0.0f;
               for (auto it = _stats_count.begin(); it != _stats_count.end();
                    ++it)
                 s += *it;
 
-              std::lock_guard<std::mutex> lk(_stat_m);
-              _speed = s / _stats_count.size();
+              stats::center::instance().update(
+                  _stats->mutable_speed(), fmt::format("{} events/s", s / _stats_count.size()));
             }
           }
         }
         log_v2::sql()->debug("{} new events to treat", count);
+
+        /* Get some stats */
+  stats::center::instance().update(
+      &ConflictManagerStats::set_handled_events, _stats, static_cast<uint32_t>(events.size()));
+  stats::center::instance().update(
+      &ConflictManagerStats::set_waiting_events, _stats, static_cast<uint32_t>(_fifo.get_size()));
+
         /* Here, just before looping, we commit. */
+          stats::center::instance().update(
+                  _stats->mutable_state(), std::string("committing queries"));
         _finish_actions();
-        if (_fifo.get_pending_elements() == 0)
-          log_v2::sql()->debug(
-              "conflict_manager: acknowledgement - no pending events");
-        else
-          log_v2::sql()->debug(
-              "conflict_manager: acknowledgement - still {} not acknowledged",
-              _fifo.get_pending_elements());
 
         /* Are there unresonsive instances? */
         _update_hosts_and_services_of_unresponsive_instances();
 
-        /* Get some stats */
-        {
-          std::lock_guard<std::mutex> lk(_stat_m);
-          _events_handled = events.size();
-        }
       }
     } catch (std::exception const& e) {
       logging::error(logging::high)
@@ -611,7 +628,7 @@ void conflict_manager::_callback() {
  */
 bool conflict_manager::_should_exit() const {
   std::lock_guard<std::mutex> lock(_loop_m);
-  return _broken || (_exit && _fifo.get_events().empty());
+  return _broken || (_exit && _fifo.get_size() == 0);
 }
 
 /**
@@ -693,7 +710,7 @@ void conflict_manager::_finish_actions() {
   _fifo.clean(storage);
 
   log_v2::sql()->debug("conflict_manager: still {} not acknowledged",
-                       _fifo.get_pending_elements());
+                       _fifo.get_size());
 }
 
 /**
@@ -727,14 +744,13 @@ json11::Json::object conflict_manager::get_statistics() {
   retval["max pending events"] = static_cast<int32_t>(_max_pending_queries);
   retval["max perfdata events"] = static_cast<int32_t>(_max_perfdata_queries);
   retval["loop timeout"] = static_cast<int32_t>(_loop_timeout);
-  if (auto lock = std::unique_lock<std::mutex>(_stat_m, std::try_to_lock)) {
-    retval["waiting_events"] = static_cast<int32_t>(_fifo.get_events().size());
-    retval["events_handled"] = _events_handled;
+  //if (auto lock = std::unique_lock<std::mutex>(_stat_m, std::try_to_lock)) {
+    //FIXME DBR: retval["waiting_events"] = static_cast<int32_t>(_fifo.get_events().size());
+    //FIXME DBR: no more used retval["events_handled"] = _events_handled;
     retval["sql"] = static_cast<int32_t>(_fifo.get_timeline(sql).size());
-    retval["storage"] =
-        static_cast<int32_t>(_fifo.get_timeline(storage).size());
-    retval["speed"] = fmt::format("{} events/s", _speed);
-  }
+    retval["storage"] = static_cast<int32_t>(_fifo.get_timeline(storage).size());
+    //FIXME DBR: no more used retval["speed"] = fmt::format("{} events/s", _speed);
+  //}
   return retval;
 }
 

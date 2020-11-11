@@ -73,8 +73,6 @@ class feeder {
 
   inline void set_state(const std::string& state);
   inline void set_queued_events(uint32_t events);
-  inline void set_last_connection_attempt(timestamp time);
-  inline void set_last_connection_success(timestamp time);
   inline void set_last_error(const std::string& last_error);
   inline void set_event_processing_speed(double value);
   inline void set_last_event_at(timestamp value);
@@ -90,7 +88,8 @@ class feeder {
   feeder(std::string const& name,
          std::shared_ptr<io::stream> client,
          std::unordered_set<uint32_t> const& read_filters,
-         std::unordered_set<uint32_t> const& write_filters);
+         std::unordered_set<uint32_t> const& write_filters,
+         EndpointStats* ep_stats);
   ~feeder();
   feeder(feeder const&) = delete;
   feeder& operator=(feeder const&) = delete;

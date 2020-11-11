@@ -49,13 +49,14 @@ using namespace com::centreon::broker::processing;
 feeder::feeder(std::string const& name,
                std::shared_ptr<io::stream> client,
                std::unordered_set<uint32_t> const& read_filters,
-               std::unordered_set<uint32_t> const& write_filters)
+               std::unordered_set<uint32_t> const& write_filters,
+               EndpointStats* ep_stats)
     : _name(name),
       _state{feeder::stopped},
       _should_exit{false},
       _client(client),
       _subscriber(name, false, read_filters, write_filters),
-      _stats(stats::center::instance().register_feeder(name)) {
+      _stats(stats::center::instance().register_feeder(ep_stats, name)) {
   if (!client)
     throw exceptions::msg() << "could not process '" << _name
                             << "' with no client stream";
@@ -64,9 +65,10 @@ feeder::feeder(std::string const& name,
                                    misc::dump_filters(read_filters));
   stats::center::instance().update(_stats->mutable_write_filters(),
                                    misc::dump_filters(write_filters));
-
-  set_last_connection_attempt(timestamp::now());
-  set_last_connection_success(timestamp::now());
+  stats::center::instance().update(
+      &FeederStats::set_last_connection_attempt, _stats, std::time(nullptr));
+  stats::center::instance().update(
+      &FeederStats::set_last_connection_success, _stats, std::time(nullptr));
   set_state("connecting");
   std::unique_lock<std::mutex> lck(_state_m);
   _thread = std::thread(&feeder::_callback, this);
@@ -280,16 +282,6 @@ void feeder::set_queued_events(uint32_t events) {
       &FeederStats::set_queued_events, _stats, events);
 }
 
-void feeder::set_last_connection_attempt(timestamp time) {
-  stats::center::instance().update(_stats->mutable_last_connection_attempt(),
-                                   time.get_time_t());
-}
-
-void feeder::set_last_connection_success(timestamp time) {
-  stats::center::instance().update(_stats->mutable_last_connection_success(),
-                                   time.get_time_t());
-}
-
 void feeder::set_last_error(const std::string& last_error) {
   stats::center::instance().update(_stats->mutable_last_error(), last_error);
 }
@@ -300,8 +292,8 @@ void feeder::set_event_processing_speed(double value) {
 }
 
 void feeder::set_last_event_at(timestamp last_event_at) {
-  stats::center::instance().update(_stats->mutable_last_event_at(),
-                                   last_event_at.get_time_t());
+  stats::center::instance().update(
+      &FeederStats::set_last_event_at, _stats, last_event_at.get_time_t());
 }
 
 void feeder::set_queue_file_enabled(bool value) {

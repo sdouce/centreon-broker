@@ -73,7 +73,7 @@ void acceptor::accept() {
     std::string name(fmt::format("{}-{}", _name, ++connection_id));
     log_v2::core()->info("New incoming connection '{}'", name);
     std::shared_ptr<processing::feeder> f(std::make_shared<processing::feeder>(
-        name, s, _read_filters, _write_filters));
+        name, s, _read_filters, _write_filters, _stats));
 
     std::lock_guard<std::mutex> lock(_stat_mutex);
     _feeders.push_back(f);

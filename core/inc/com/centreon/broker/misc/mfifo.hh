@@ -45,6 +45,7 @@ class mfifo {
    * And later, the input source that sent events will know how many events can
    * be released from the retention queue. */
   std::deque<std::tuple<T, uint32_t, bool*>> _events;
+  std::atomic_uint _events_size;
 
   /* Since we have N input sources, we must manage N queues.
    * So each one will know when its events will be released. */
@@ -64,8 +65,8 @@ class mfifo {
  public:
   mfifo() : _pending_elements(0) {}
 
-  std::deque<std::tuple<T, uint32_t, bool*>> const& get_events() const {
-    return _events;
+  size_t get_size() const {
+    return _events_size;
   }
 
   /**
@@ -78,6 +79,7 @@ class mfifo {
     std::deque<std::tuple<T, uint32_t, bool*>> retval;
     std::lock_guard<std::mutex> lk(_fifo_m);
     std::swap(_events, retval);
+    _events_size = _events.size();
     return retval;
   }
 
@@ -95,6 +97,7 @@ class mfifo {
     _pending_elements++;
     _timeline[idx].push_back(false);
     _events.emplace_back(std::make_tuple(e, idx, &_timeline[idx].back()));
+    _events_size++;
     int32_t retval = _ack[idx];
     _ack[idx] = 0;
     return retval;

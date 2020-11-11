@@ -64,7 +64,7 @@ class center {
   std::string to_string();
 
   EndpointStats* register_endpoint(const std::string& name);
-  FeederStats* register_feeder(const std::string& name);
+  FeederStats* register_feeder(EndpointStats* ep_stats, const std::string& name);
   ConflictManagerStats* register_conflict_manager();
   ModuleStats* register_modules();
 

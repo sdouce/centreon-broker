@@ -73,17 +73,11 @@ center::center() : _strand(pool::instance().io_context()) {
  *
  * @return A pointer to the feeder statistics.
  */
-FeederStats* center::register_feeder(const std::string& name) {
+FeederStats* center::register_feeder(EndpointStats* ep_stats, const std::string& name) {
   std::promise<FeederStats*> p;
   std::future<FeederStats*> retval = p.get_future();
-  _strand.post([this, &p, &name] {
-    auto ep = _stats.add_feeder();
-    ep->set_name(name);
-    *ep->mutable_memory_file_path() = fmt::format(
-        "{}.memory.{}", config::applier::state::instance().cache_dir(), name);
-    *ep->mutable_queue_file_path() = fmt::format(
-        "{}.queue.{}", config::applier::state::instance().cache_dir(), name);
-
+  _strand.post([this, ep_stats, &p, &name] {
+    auto ep = &(*ep_stats->mutable_feeder())[name];
     p.set_value(ep);
   });
   return retval.get();

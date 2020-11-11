@@ -52,7 +52,7 @@ class TestFeeder : public ::testing::Test {
     std::unordered_set<uint32_t> read_filters;
     std::unordered_set<uint32_t> write_filters;
     _feeder.reset(
-        new feeder("test-feeder", client, read_filters, write_filters));
+        new feeder("test-feeder", client, read_filters, write_filters, &ep_stats));
   }
 
   void TearDown() override {
@@ -64,6 +64,7 @@ class TestFeeder : public ::testing::Test {
 
  protected:
   std::unique_ptr<feeder> _feeder;
+  EndpointStats ep_stats;
 };
 
 TEST_F(TestFeeder, ImmediateStartExit) {

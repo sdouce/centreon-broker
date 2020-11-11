@@ -21,7 +21,6 @@
 #include <cassert>
 #include <limits>
 #include <memory>
-#include <sstream>
 
 #include "com/centreon/broker/config/applier/state.hh"
 #include "com/centreon/broker/exceptions/shutdown.hh"

@@ -53,30 +53,31 @@ message GenericResponse {
 
 message FeederStats {
   string name = 1;
-  string read_filters = 2;
-  string write_filters = 3;
-  string state = 4;
-  uint32 queued_events = 5;
-  google.protobuf.Timestamp last_connection_attempt = 6;
-  google.protobuf.Timestamp last_connection_success = 7;
-  string last_error = 8;
-  string memory_file_path = 9;
-  string queue_file_path = 10;
-  double event_processing_speed = 11;
-  google.protobuf.Timestamp last_event_at = 12;
-  bool queue_file_enabled = 13;
-  uint32 unacknowledged_events = 14;
+  uint32 bbdo_input_ack_limit = 2;
+  uint32 bbdo_unacknowledged_events = 3;
+  double event_processing_speed = 4;
+  int64 last_connection_attempt = 5;
+  int64 last_connection_success = 6;
+  int64 last_event_at = 7;
+  bool queue_file_enabled = 8;
+  uint32 queued_events = 9;
+  string read_filters = 10;
+  string write_filters = 11;
+  string state = 12;
+  uint32 unacknowledged_events = 13;
+  string last_error = 14;
 }
 
 message ConflictManagerStats {
   uint32 loop_timeout = 1;
   uint32 max_pending_events = 2;
   uint32 max_perfdata_events = 3;
-  uint32 pending_events = 4;
-  string speed = 5;
-  uint32 sql = 6;
-  uint32 stats_interval = 7;
+  uint32 waiting_events = 4;
+  uint32 handled_events = 5;
+  string speed = 6;
+  uint32 sql = 7;
   uint32 storage = 8;
+  string state = 9;
 }
 
 message EndpointStats {
@@ -100,6 +101,7 @@ message EndpointStats {
   uint32 bbdo_input_ack_limit = 18;
   uint32 bbdo_unacknowledged_events = 19;
   uint32 peers = 20;
+  map<string, FeederStats> feeder = 21;
 }
 
 message ModuleStats {
@@ -120,7 +122,6 @@ message BrokerStats {
   ThreadPool pool_stats = 4;
   google.protobuf.Timestamp now = 5;
   repeated EndpointStats endpoint = 6;
-  repeated FeederStats feeder = 7;
-  ConflictManagerStats conflict_manager = 8;
-  repeated ModuleStats modules = 9;
+  ConflictManagerStats conflict_manager = 7;
+  repeated ModuleStats modules = 8;
 }
