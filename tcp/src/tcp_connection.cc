@@ -101,6 +101,9 @@ int32_t tcp_connection::flush() {
     // The strand is useful because of the flush() method.
     _strand.context().post(std::bind(&tcp_connection::writing, ptr()));
   }
+  //FIXME DBR
+  if (_peer.find(":5670") != std::string::npos)
+    log_v2::perfdata()->error("tcp_connection::flush to {} with {} events", _peer, retval);
   return retval;
 }
 
