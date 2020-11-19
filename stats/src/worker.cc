@@ -98,7 +98,7 @@ void worker::_close() {
  */
 bool worker::_open() {
   bool retval;
-  _fd = open(_fifo.c_str(), O_WRONLY | O_NONBLOCK);
+  _fd = open(_fifo.c_str(), O_WRONLY);
   if (_fd < 0) {
     if (errno != ENXIO) {
       char const* msg(strerror(errno));
