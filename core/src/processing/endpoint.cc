@@ -126,18 +126,18 @@ void endpoint::set_status(const std::string& status) {
 }
 
 void endpoint::set_last_connection_attempt(timestamp last_connection_attempt) {
-  stats::center::instance().update(_stats->mutable_last_connection_attempt(),
-                                   last_connection_attempt.get_time_t());
+  stats::center::instance().update(
+      &EndpointStats::set_last_connection_attempt, _stats, last_connection_attempt.get_time_t());
 }
 
 void endpoint::set_last_connection_success(timestamp last_connection_success) {
-  stats::center::instance().update(_stats->mutable_last_connection_success(),
-                                   last_connection_success.get_time_t());
+  stats::center::instance().update(
+      &EndpointStats::set_last_connection_success, _stats, last_connection_success.get_time_t());
 }
 
 void endpoint::set_last_event_at(timestamp last_event_at) {
-  stats::center::instance().update(_stats->mutable_last_event_at(),
-                                   last_event_at.get_time_t());
+  stats::center::instance().update(
+      &EndpointStats::set_last_event_at, _stats, last_event_at.get_time_t());
 }
 
 void endpoint::set_queued_events(uint32_t value) {

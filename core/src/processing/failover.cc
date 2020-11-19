@@ -68,6 +68,9 @@ failover::failover(std::shared_ptr<io::endpoint> endp,
   // set write filters protobuf
   stats::center::instance().update(_stats->mutable_write_filters(),
                                    misc::dump_filters(write_filters));
+
+  // Register the muxer in the stats center
+  _subscriber->get_muxer().register_stats(_stats->mutable_stream());
 }
 
 /**

@@ -51,23 +51,6 @@ message GenericResponse {
   string err_msg = 2;
 }
 
-message FeederStats {
-  string name = 1;
-  uint32 bbdo_input_ack_limit = 2;
-  uint32 bbdo_unacknowledged_events = 3;
-  double event_processing_speed = 4;
-  int64 last_connection_attempt = 5;
-  int64 last_connection_success = 6;
-  int64 last_event_at = 7;
-  bool queue_file_enabled = 8;
-  uint32 queued_events = 9;
-  string read_filters = 10;
-  string write_filters = 11;
-  string state = 12;
-  uint32 unacknowledged_events = 13;
-  string last_error = 14;
-}
-
 message ConflictManagerStats {
   uint32 loop_timeout = 1;
   uint32 max_pending_events = 2;
@@ -80,28 +63,52 @@ message ConflictManagerStats {
   string state = 9;
 }
 
+message StreamStats {
+  string name = 1;
+  StreamStats substream = 2;
+}
+
+message FeederStats {
+  string name = 1;
+  string read_filters = 2;
+  string write_filters = 3;
+  string state = 4;
+  uint32 queued_events = 5;
+  int64 last_connection_attempt = 6;
+  int64 last_connection_success = 7;
+  double event_processing_speed = 8;
+  int64 last_event_at = 9;
+  bool queue_file_enabled = 10;
+  uint32 unacknowledged_events = 11;
+  StreamStats stream = 12;
+  uint32 bbdo_input_ack_limit = 13;
+  uint32 bbdo_unacknowledged_events = 14;
+  string last_error = 15;
+}
+
 message EndpointStats {
   string name = 1;
   string read_filters = 2;
   string write_filters = 3;
   string state = 4;
   uint32 queued_events = 5;
-  google.protobuf.Timestamp last_connection_attempt = 6;
-  google.protobuf.Timestamp last_connection_success = 7;
+  int64 last_connection_attempt = 6;
+  int64 last_connection_success = 7;
   double event_processing_speed = 8;
-  google.protobuf.Timestamp last_event_at = 9;
-  string memory_file_path = 10;
-  string status = 11;
-  bool one_peer_retention_mode = 12;
-  uint32 pending_events = 13;
-  bool queue_file_enabled = 14;
-  uint32 unacknowledged_events = 15;
-  uint32 sql_pending_events = 16;
-  string queue_file_path = 17;
-  uint32 bbdo_input_ack_limit = 18;
-  uint32 bbdo_unacknowledged_events = 19;
-  uint32 peers = 20;
-  map<string, FeederStats> feeder = 21;
+  int64 last_event_at = 9;
+  bool queue_file_enabled = 10;
+  uint32 unacknowledged_events = 11;
+  StreamStats stream = 12;
+  string memory_file_path = 13;
+  string status = 14;
+  bool one_peer_retention_mode = 15;
+  uint32 pending_events = 16;
+  uint32 sql_pending_events = 17;
+  string queue_file_path = 18;
+  uint32 bbdo_input_ack_limit = 19;
+  uint32 bbdo_unacknowledged_events = 20;
+  uint32 peers = 21;
+  map<string, FeederStats> feeder = 22;
 }
 
 message ModuleStats {

@@ -28,7 +28,7 @@ using namespace com::centreon::broker::io;
  *
  * @param name
  */
-stream::stream(const std::string& name) : _name(name) {}
+stream::stream(const std::string& name) : _name(name), _stats(nullptr) {}
 
 /**
  *  Destructor.
@@ -100,4 +100,8 @@ bool stream::validate(std::shared_ptr<io::data> const& d,
     return false;
   }
   return true;
+}
+
+void stream::register_stats(StreamStats* stats) {
+  _stats = stats;
 }
