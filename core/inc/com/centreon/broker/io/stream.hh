@@ -24,6 +24,8 @@
 #include <memory>
 #include <string>
 
+#include <asio.hpp>
+
 #include "broker.pb.h"
 #include "com/centreon/broker/io/data.hh"
 #include "com/centreon/broker/namespace.hh"
@@ -55,6 +57,9 @@ class stream {
 
  protected:
   StreamStats* _stats;
+  /* Statistics timer */
+  asio::steady_timer _timer;
+
   std::shared_ptr<stream> _substream;
 
  public:
@@ -73,8 +78,9 @@ class stream {
   bool validate(std::shared_ptr<io::data> const& d, std::string const& error);
   virtual int write(std::shared_ptr<data> const& d) = 0;
   const std::string& get_name() const { return _name; }
-  void register_stats(StreamStats* stats);
-
+  virtual void register_stats(StreamStats* stats);
+  void start_stats(std::function<void()>&& f);
+  void stats(std::function<void()>&& f, const asio::error_code& ec);
 };
 }  // namespace io
 

@@ -22,6 +22,8 @@
 #include <deque>
 #include <list>
 
+#include <asio.hpp>
+
 #include "com/centreon/broker/io/stream.hh"
 #include "com/centreon/broker/namespace.hh"
 
@@ -109,6 +111,7 @@ class stream : public io::stream {
   void _read_packet(size_t size, time_t deadline = (time_t)-1);
 
   bool _coarse;
+
   /**
    * the first string contains all the supported extensions.
    * the second one contains the activated extensions.
@@ -146,6 +149,8 @@ class stream : public io::stream {
   void acknowledge_events(uint32_t events);
   void send_event_acknowledgement();
   std::list<std::string> get_running_config();
+  void register_stats(StreamStats* stats) override;
+  void _update_stats();
 };
 }  // namespace bbdo
 

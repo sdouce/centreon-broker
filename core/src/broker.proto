@@ -66,6 +66,8 @@ message ConflictManagerStats {
 message StreamStats {
   string name = 1;
   StreamStats substream = 2;
+  uint32 unacknowledged_events = 3;
+  uint32 input_ack_limit = 4;
 }
 
 message FeederStats {

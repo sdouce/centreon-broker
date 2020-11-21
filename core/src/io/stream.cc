@@ -18,6 +18,8 @@
 
 #include "com/centreon/broker/io/stream.hh"
 #include "com/centreon/broker/logging/logging.hh"
+#include "com/centreon/broker/stats/center.hh"
+#include "com/centreon/broker/log_v2.hh"
 
 using namespace com::centreon::broker;
 using namespace com::centreon::broker::io;
@@ -28,7 +30,7 @@ using namespace com::centreon::broker::io;
  *
  * @param name
  */
-stream::stream(const std::string& name) : _name(name), _stats(nullptr) {}
+stream::stream(const std::string& name) : _name(name), _stats(nullptr), _timer(pool::instance().io_context()) {}
 
 /**
  *  Destructor.
@@ -104,4 +106,21 @@ bool stream::validate(std::shared_ptr<io::data> const& d,
 
 void stream::register_stats(StreamStats* stats) {
   _stats = stats;
+  stats::center::instance().update(_stats->mutable_name(),
+                                   _name);
+}
+
+void stream::start_stats(std::function<void()>&& f) {
+  _timer.expires_after(std::chrono::seconds(1));
+  _timer.async_wait(std::bind(&stream::stats, this, f, std::placeholders::_1));
+}
+
+void stream::stats(std::function<void()>&& f, const asio::error_code& ec) {
+  if (ec) {
+    log_v2::core()->error("Unable to log stream stats: {}", ec.message());
+    return;
+  }
+  stats::center::instance().execute(f);
+  _timer.expires_after(std::chrono::seconds(1));
+  _timer.async_wait(std::bind(&stream::stats, this, f, std::placeholders::_1));
 }

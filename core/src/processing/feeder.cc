@@ -60,6 +60,8 @@ feeder::feeder(std::string const& name,
   if (!client)
     throw exceptions::msg() << "could not process '" << _name
                             << "' with no client stream";
+  else
+    _client->register_stats(_stats->mutable_stream());
 
   stats::center::instance().update(_stats->mutable_read_filters(),
                                    misc::dump_filters(read_filters));

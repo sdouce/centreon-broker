@@ -109,6 +109,10 @@ class center {
   void update(void (U::*f)(T), U* ptr, T value) {
     _strand.post([ptr, f, value] { (ptr->*f)(value); });
   }
+
+  void execute(std::function<void()> f) {
+    _strand.post(f);
+  }
 };
 
 }  // namespace stats

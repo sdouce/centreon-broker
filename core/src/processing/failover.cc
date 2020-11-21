@@ -160,6 +160,7 @@ void failover::run() {
         {
           std::lock_guard<std::timed_mutex> stream_lock(_stream_m);
           _stream = s;
+          _stream->register_stats(_stats->mutable_stream()->mutable_substream());
           set_state(s ? "connected" : "connecting");
         }
         _initialized = true;

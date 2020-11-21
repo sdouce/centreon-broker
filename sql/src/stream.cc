@@ -38,6 +38,7 @@
 #include "com/centreon/engine/common.hh"
 #include "com/centreon/engine/host.hh"
 #include "com/centreon/engine/service.hh"
+#include "com/centreon/broker/stats/center.hh"
 
 using namespace com::centreon::broker;
 using namespace com::centreon::broker::misc;
@@ -530,4 +531,17 @@ void stream::statistics(json11::Json::object& tree) const {
       storage::conflict_manager::instance().get_statistics()};
   tree["sql pending events"] = _pending_events;
   tree["conflict_manager"] = obj;
+}
+
+void stream::register_stats(StreamStats* stats) {
+  io::stream::register_stats(stats);
+  start_stats(std::bind(&stream::_update_stats, this));
+}
+
+void stream::_update_stats() {
+  stats::center::instance().execute([this]{
+    _stats->set_unacknowledged_events(_pending_events);
+  });
+  _timer.expires_after(std::chrono::seconds(1));
+  _timer.async_wait(std::bind(&stream::_update_stats, this));
 }

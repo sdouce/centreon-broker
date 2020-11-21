@@ -34,6 +34,7 @@
 #include "com/centreon/broker/logging/logging.hh"
 #include "com/centreon/broker/misc/misc.hh"
 #include "com/centreon/broker/misc/string.hh"
+#include "com/centreon/broker/stats/center.hh"
 
 using namespace com::centreon::broker;
 using namespace com::centreon::broker::bbdo;
@@ -732,8 +733,9 @@ bool stream::read(std::shared_ptr<io::data>& d, time_t deadline) {
     event_id = !d ? 0 : d->type();
   }
 
-  if (!timed_out && d)
+  if (!timed_out && d) {
     ++_events_received_since_last_ack;
+  }
   if (_events_received_since_last_ack >= _ack_limit)
     send_event_acknowledgement();
   return !timed_out;
@@ -1055,4 +1057,15 @@ void stream::send_event_acknowledgement() {
     _write(acknowledgement);
     _events_received_since_last_ack = 0;
   }
+}
+
+void stream::register_stats(StreamStats* stats) {
+  io::stream::register_stats(stats);
+  stats::center::instance().update(
+      &StreamStats::set_input_ack_limit, _stats, _ack_limit);
+  start_stats(std::bind(&stream::_update_stats, this));
+}
+
+void stream::_update_stats() {
+  _stats->set_unacknowledged_events(_events_received_since_last_ack);
 }

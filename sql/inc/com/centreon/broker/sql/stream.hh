@@ -80,7 +80,8 @@ class stream : public io::stream {
   void update();
   int write(std::shared_ptr<io::data> const& d);
   void statistics(json11::Json::object& tree) const override;
-
+  void register_stats(StreamStats* stats) override;
+  void _update_stats();
 };
 }  // namespace sql
 
