@@ -19,12 +19,11 @@
 #ifndef CCB_IO_STREAM_HH
 #define CCB_IO_STREAM_HH
 
+#include <asio.hpp>
 #include <ctime>
 #include <json11.hpp>
 #include <memory>
 #include <string>
-
-#include <asio.hpp>
 
 #include "broker.pb.h"
 #include "com/centreon/broker/io/data.hh"
@@ -79,7 +78,7 @@ class stream {
   virtual int write(std::shared_ptr<data> const& d) = 0;
   const std::string& get_name() const { return _name; }
   virtual void register_stats(StreamStats* stats);
-  void start_stats(std::function<void()>&& f);
+  void start_stats(std::function<void()> f);
   void stats(std::function<void()>&& f, const asio::error_code& ec);
 };
 }  // namespace io

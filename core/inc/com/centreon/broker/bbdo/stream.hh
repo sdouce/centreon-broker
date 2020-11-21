@@ -19,10 +19,9 @@
 #ifndef CCB_BBDO_STREAM_HH
 #define CCB_BBDO_STREAM_HH
 
+#include <asio.hpp>
 #include <deque>
 #include <list>
-
-#include <asio.hpp>
 
 #include "com/centreon/broker/io/stream.hh"
 #include "com/centreon/broker/namespace.hh"

@@ -64,7 +64,8 @@ class center {
   std::string to_string();
 
   EndpointStats* register_endpoint(const std::string& name);
-  FeederStats* register_feeder(EndpointStats* ep_stats, const std::string& name);
+  FeederStats* register_feeder(EndpointStats* ep_stats,
+                               const std::string& name);
   ConflictManagerStats* register_conflict_manager();
   ModuleStats* register_modules();
 
@@ -110,9 +111,7 @@ class center {
     _strand.post([ptr, f, value] { (ptr->*f)(value); });
   }
 
-  void execute(std::function<void()> f) {
-    _strand.post(f);
-  }
+  void execute(std::function<void()> f) { _strand.post(f); }
 };
 
 }  // namespace stats

@@ -34,11 +34,11 @@
 #include "com/centreon/broker/neb/events.hh"
 #include "com/centreon/broker/neb/internal.hh"
 #include "com/centreon/broker/query_preparator.hh"
+#include "com/centreon/broker/stats/center.hh"
 #include "com/centreon/broker/storage/conflict_manager.hh"
 #include "com/centreon/engine/common.hh"
 #include "com/centreon/engine/host.hh"
 #include "com/centreon/engine/service.hh"
-#include "com/centreon/broker/stats/center.hh"
 
 using namespace com::centreon::broker;
 using namespace com::centreon::broker::misc;
@@ -539,9 +539,8 @@ void stream::register_stats(StreamStats* stats) {
 }
 
 void stream::_update_stats() {
-  stats::center::instance().execute([this]{
-    _stats->set_unacknowledged_events(_pending_events);
-  });
+  stats::center::instance().execute(
+      [this] { _stats->set_unacknowledged_events(_pending_events); });
   _timer.expires_after(std::chrono::seconds(1));
   _timer.async_wait(std::bind(&stream::_update_stats, this));
 }

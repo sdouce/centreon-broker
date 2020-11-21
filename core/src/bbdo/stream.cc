@@ -944,8 +944,7 @@ void stream::_read_packet(size_t size, time_t deadline) {
         if (_packet.size() == 0) {
           _packet = std::move(new_v);
           new_v.clear();
-        }
-        else
+        } else
           _packet.insert(_packet.end(), new_v.begin(), new_v.end());
       }
     }
@@ -1061,8 +1060,8 @@ void stream::send_event_acknowledgement() {
 
 void stream::register_stats(StreamStats* stats) {
   io::stream::register_stats(stats);
-  stats::center::instance().update(
-      &StreamStats::set_input_ack_limit, _stats, _ack_limit);
+  stats::center::instance().update(&StreamStats::set_input_ack_limit, _stats,
+                                   _ack_limit);
   start_stats(std::bind(&stream::_update_stats, this));
 }
 
