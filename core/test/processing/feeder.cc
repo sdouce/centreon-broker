@@ -18,13 +18,16 @@
  */
 
 #include "com/centreon/broker/processing/feeder.hh"
+
 #include <gtest/gtest.h>
+
 #include <memory>
 #include <string>
 #include <thread>
+
 #include "com/centreon/broker/config/applier/state.hh"
-#include "com/centreon/broker/multiplexing/engine.hh"
 #include "com/centreon/broker/io/events.hh"
+#include "com/centreon/broker/multiplexing/engine.hh"
 
 using namespace com::centreon::broker;
 using namespace com::centreon::broker::processing;
@@ -32,18 +35,15 @@ using namespace com::centreon::broker::processing;
 class TestStream : public io::stream {
  public:
   TestStream() : io::stream("TestStream") {}
-  bool read(std::shared_ptr<io::data>&, time_t) {
-    return true;
-  }
+  bool read(std::shared_ptr<io::data>&, time_t) { return true; }
 
-  int write(std::shared_ptr<io::data> const&) {
-    return 1;
-  }
+  int write(std::shared_ptr<io::data> const&) { return 1; }
 };
 
 class TestFeeder : public ::testing::Test {
  public:
   void SetUp() override {
+    pool::start(0);
     config::applier::state::load();
     multiplexing::engine::load();
     io::events::load();
@@ -51,8 +51,8 @@ class TestFeeder : public ::testing::Test {
     std::shared_ptr<io::stream> client = std::make_shared<TestStream>();
     std::unordered_set<uint32_t> read_filters;
     std::unordered_set<uint32_t> write_filters;
-    _feeder.reset(
-        new feeder("test-feeder", client, read_filters, write_filters, &ep_stats));
+    _feeder.reset(new feeder("test-feeder", client, read_filters, write_filters,
+                             &ep_stats));
   }
 
   void TearDown() override {
@@ -74,7 +74,7 @@ TEST_F(TestFeeder, ImmediateStartExit) {
 TEST_F(TestFeeder, isFinished) {
   // It began
   ASSERT_FALSE(_feeder->is_finished());
-  json11::Json::object tree;
-  _feeder->stats(tree);
-  ASSERT_EQ(tree["state"].string_value(), "connected");
+  ASSERT_EQ(stats::center::instance().get(&FeederStats::state,
+                                          &ep_stats.feeder().begin()->second),
+            "connected");
 }

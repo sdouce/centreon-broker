@@ -539,8 +539,5 @@ void stream::register_stats(StreamStats* stats) {
 }
 
 void stream::_update_stats() {
-  stats::center::instance().execute(
-      [this] { _stats->set_unacknowledged_events(_pending_events); });
-  _timer.expires_after(std::chrono::seconds(1));
-  _timer.async_wait(std::bind(&stream::_update_stats, this));
+  _stats->set_unacknowledged_events(_pending_events);
 }

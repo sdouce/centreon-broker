@@ -76,6 +76,7 @@ class stream : public io::stream {
   mutable std::mutex _statusm;
 
   void _update_status(std::string const& status);
+  void _update_stats();
 
  public:
   stream(database_config const& dbcfg,
@@ -90,6 +91,7 @@ class stream : public io::stream {
   bool read(std::shared_ptr<io::data>& d, time_t deadline);
   void statistics(json11::Json::object& tree) const override;
   int32_t write(std::shared_ptr<io::data> const& d);
+  void register_stats(StreamStats* stats) override;
 };
 }  // namespace storage
 

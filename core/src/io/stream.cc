@@ -112,7 +112,7 @@ void stream::register_stats(StreamStats* stats) {
 }
 
 void stream::start_stats(std::function<void()> f) {
-  stats::center::instance().execute(f);
   _timer.expires_after(std::chrono::seconds(1));
   _timer.async_wait(std::bind([this, f] { start_stats(f); }));
+  stats::center::instance().execute(std::move(f));
 }

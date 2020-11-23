@@ -34,6 +34,7 @@
 #include "com/centreon/broker/modules/loader.hh"
 #include "com/centreon/broker/neb/instance.hh"
 #include "com/centreon/broker/persistent_file.hh"
+#include "com/centreon/broker/pool.hh"
 
 using namespace com::centreon::broker;
 using namespace com::centreon::broker::misc;
@@ -76,6 +77,7 @@ class OutputTest : public ::testing::Test {
     } catch (std::exception const& e) {
       (void)e;
     }
+    pool::start(0);
     std::shared_ptr<persistent_cache> pcache(
         std::make_shared<persistent_cache>("/tmp/broker_test_cache"));
   }

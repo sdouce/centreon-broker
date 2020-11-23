@@ -166,3 +166,12 @@ void stream::_update_status(std::string const& status) {
   std::lock_guard<std::mutex> lock(_statusm);
   _status = status;
 }
+
+void stream::register_stats(StreamStats* stats) {
+  io::stream::register_stats(stats);
+  start_stats(std::bind(&stream::_update_stats, this));
+}
+
+void stream::_update_stats() {
+  _stats->set_unacknowledged_events(_pending_events);
+}

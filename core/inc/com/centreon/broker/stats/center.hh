@@ -112,6 +112,14 @@ class center {
   }
 
   void execute(std::function<void()> f) { _strand.post(f); }
+
+  template <typename U, typename T>
+  const T& get(T (U::*f)() const, const U* ptr) {
+    std::promise<T> p;
+    std::future<T> retval = p.get_future();
+    _strand.post([&p, ptr, f] { p.set_value((ptr->*f)()); });
+    return retval.get();
+  }
 };
 
 }  // namespace stats

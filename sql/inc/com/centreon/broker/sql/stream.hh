@@ -66,6 +66,7 @@ class stream : public io::stream {
 
   static void (stream::*const _correlation_processing_table[])(
       std::shared_ptr<io::data> const&);
+  void _update_stats();
 
  public:
   stream(database_config const& dbcfg,
@@ -82,7 +83,6 @@ class stream : public io::stream {
   int write(std::shared_ptr<io::data> const& d);
   void statistics(json11::Json::object& tree) const override;
   void register_stats(StreamStats* stats) override;
-  void _update_stats();
 };
 }  // namespace sql
 

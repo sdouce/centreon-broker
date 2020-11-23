@@ -17,21 +17,18 @@
 */
 
 #include "com/centreon/broker/config/applier/modules.hh"
+
+#include <cassert>
 #include <cstdlib>
 #include <memory>
+
 #include "com/centreon/broker/logging/logging.hh"
 #include "com/centreon/broker/multiplexing/engine.hh"
 
 using namespace com::centreon::broker::config::applier;
 
 // Class instance.
-static modules* gl_modules = nullptr;
-
-/**************************************
- *                                     *
- *           Public Methods            *
- *                                     *
- **************************************/
+modules* modules::_instance{nullptr};
 
 /**
  *  Destructor.
@@ -50,13 +47,6 @@ modules::~modules() {
 void modules::apply(std::list<std::string> const& module_list,
                     std::string const& module_dir,
                     void const* arg) {
-  // FIXME DBR: Very strange those lines of code. The hook and unhook methods
-  // are already locked, why add a lock?
-
-//  // Lock multiplexing engine in case modules register hooks.
-//  std::lock_guard<std::recursive_mutex> lock(
-//      com::centreon::broker::multiplexing::engine::instance());
-
   // Load modules.
   for (std::string const& m : module_list) {
     logging::config(logging::high)
@@ -102,23 +92,28 @@ modules::iterator modules::end() {
  *  @return Class instance.
  */
 modules& modules::instance() {
-  return *gl_modules;
+  assert(_instance);
+  return *_instance;
 }
 
 /**
  *  Load the singleton.
  */
 void modules::load() {
-  if (!gl_modules)
-    gl_modules = new modules;
+  if (!_instance)
+    _instance = new modules;
 }
 
 /**
  *  Unload the singleton.
  */
 void modules::unload() {
-  delete gl_modules;
-  gl_modules = nullptr;
+  delete _instance;
+  _instance = nullptr;
+}
+
+bool modules::loaded() {
+  return _instance;
 }
 
 std::mutex& modules::module_mutex() {

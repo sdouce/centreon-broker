@@ -22,6 +22,7 @@
 #include <list>
 #include <mutex>
 #include <string>
+
 #include "com/centreon/broker/modules/loader.hh"
 #include "com/centreon/broker/namespace.hh"
 
@@ -38,6 +39,7 @@ namespace applier {
 class modules {
   broker::modules::loader _loader;
   std::mutex _m_modules;
+  static modules* _instance;
 
  public:
   typedef broker::modules::loader::iterator iterator;
@@ -55,6 +57,7 @@ class modules {
   static modules& instance();
   static void load();
   static void unload();
+  static bool loaded();
 
   std::mutex& module_mutex();
 };

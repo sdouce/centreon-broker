@@ -20,13 +20,12 @@
 
 #include <fmt/format.h>
 #include <google/protobuf/util/json_util.h>
-#include <fmt/format.h>
 
-#include "com/centreon/broker/version.hh"
-#include "com/centreon/broker/config/applier/state.hh"
-#include "com/centreon/broker/modules/loader.hh"
 #include "com/centreon/broker/config/applier/modules.hh"
+#include "com/centreon/broker/config/applier/state.hh"
 #include "com/centreon/broker/misc/filesystem.hh"
+#include "com/centreon/broker/modules/loader.hh"
+#include "com/centreon/broker/version.hh"
 
 using namespace com::centreon::broker;
 using namespace com::centreon::broker::stats;
@@ -40,23 +39,23 @@ center& center::instance() {
 
 center::center() : _strand(pool::instance().io_context()) {
   *_stats.mutable_version() = version::string;
-  *_stats.mutable_asio_version() = fmt::format("{}.{}.{}",
-                                               ASIO_VERSION / 100000,
-                                               ASIO_VERSION / 100 % 1000,
-                                               ASIO_VERSION % 100);
+  *_stats.mutable_asio_version() =
+      fmt::format("{}.{}.{}", ASIO_VERSION / 100000, ASIO_VERSION / 100 % 1000,
+                  ASIO_VERSION % 100);
   _stats.set_pid(getpid());
 
   /* Bringing modules statistics */
-  config::applier::modules& mod_applier(config::applier::modules::instance());
-  for (config::applier::modules::iterator it(mod_applier.begin()),
-       end(mod_applier.end());
-       it != end;
-       ++it) {
-    auto m = _stats.add_modules();
-    *m->mutable_name() = it->first;
-    *m->mutable_size() =
-        fmt::format("{}B", misc::filesystem::file_size(it->first));
-    *m->mutable_state() = "loaded";
+  if (config::applier::modules::loaded()) {
+    config::applier::modules& mod_applier(config::applier::modules::instance());
+    for (config::applier::modules::iterator it(mod_applier.begin()),
+         end(mod_applier.end());
+         it != end; ++it) {
+      auto m = _stats.add_modules();
+      *m->mutable_name() = it->first;
+      *m->mutable_size() =
+          fmt::format("{}B", misc::filesystem::file_size(it->first));
+      *m->mutable_state() = "loaded";
+    }
   }
 
   /*Start the thread pool */
@@ -73,7 +72,8 @@ center::center() : _strand(pool::instance().io_context()) {
  *
  * @return A pointer to the feeder statistics.
  */
-FeederStats* center::register_feeder(EndpointStats* ep_stats, const std::string& name) {
+FeederStats* center::register_feeder(EndpointStats* ep_stats,
+                                     const std::string& name) {
   std::promise<FeederStats*> p;
   std::future<FeederStats*> retval = p.get_future();
   _strand.post([this, ep_stats, &p, &name] {
@@ -153,17 +153,14 @@ ModuleStats* center::register_modules() {
 std::string center::to_string() {
   std::promise<std::string> p;
   std::future<std::string> retval = p.get_future();
-  _strand.post([
-    &s = this->_stats,
-    &p
-  ] {
-      const JsonPrintOptions options;
-      std::string retval;
-      std::time_t now;
-      time(&now);
-      s.mutable_now()->set_seconds(now);
-      MessageToJsonString(s, &retval, options);
-      p.set_value(std::move(retval));
-    });
+  _strand.post([& s = this->_stats, &p] {
+    const JsonPrintOptions options;
+    std::string retval;
+    std::time_t now;
+    time(&now);
+    s.mutable_now()->set_seconds(now);
+    MessageToJsonString(s, &retval, options);
+    p.set_value(std::move(retval));
+  });
   return retval.get();
 }
