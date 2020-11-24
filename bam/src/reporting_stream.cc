@@ -1033,11 +1033,8 @@ void reporting_stream::_process_dimension_truncate_signal(
   if (dtts.update_started) {
     log_v2::bam()->debug("BAM-BI: processing table truncation signal");
 
-    for (std::vector<mysql_stmt>::iterator
-             it(_dimension_truncate_tables.begin()),
-         end(_dimension_truncate_tables.end());
-         it != end; ++it)
-      _mysql.run_statement(*it,
+    for (auto& stmt : _dimension_truncate_tables)
+      _mysql.run_statement(stmt,
                            "BAM-BI: could not truncate some dimension table: ");
 
     _timeperiods.clear();
@@ -1377,7 +1374,6 @@ void reporting_stream::_process_rebuild(std::shared_ptr<io::data> const& e) {
 
     size_t ba_events_num = ba_events.size();
     size_t ba_events_curr = 0;
-    std::stringstream ss;
 
     // Generate new ba events durations for each ba events.
     {

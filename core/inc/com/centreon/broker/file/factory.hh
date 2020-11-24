@@ -42,7 +42,7 @@ class factory : public io::factory {
   io::endpoint* new_endpoint(config::endpoint& cfg,
                              bool& is_acceptor,
                              std::shared_ptr<persistent_cache> cache =
-                                 std::shared_ptr<persistent_cache>()) const;
+                                 std::shared_ptr<persistent_cache>()) const override;
 };
 }  // namespace file
 
