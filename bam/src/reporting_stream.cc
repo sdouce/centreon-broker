@@ -251,16 +251,14 @@ void reporting_stream::_close_inconsistent_events(char const* event_type,
   // Get events to close.
   std::list<std::pair<uint32_t, time_t>> events;
   {
-    std::ostringstream query;
-    query << "SELECT e1." << id << ", e1.start_time"
-          << "  FROM " << table << " As e1 INNER JOIN ("
-          << "    SELECT " << id << ", MAX(start_time) AS max_start_time"
-          << "      FROM " << table << "      GROUP BY " << id << ") AS e2"
-          << "        ON e1." << id << "=e2." << id
-          << "  WHERE e1.end_time IS NULL"
-          << "    AND e1.start_time!=e2.max_start_time";
+    std::string query(
+        fmt::format("SELECT e1.{0}, e1.start_time FROM {1} AS e1 INNER JOIN "
+                    "(SELECT {0}, MAX(start_time) AS max_start_time FROM {1} "
+                    "GROUP BY {0}) AS e2 ON e1.{0}=e2.{0} WHERE e1.end_time IS "
+                    "NULL AND e1.start_time!=e2.max_start_time",
+                    id, table));
     std::promise<mysql_result> promise;
-    _mysql.run_query_and_get_result(query.str(), &promise);
+    _mysql.run_query_and_get_result(query, &promise);
     try {
       mysql_result res(promise.get_future().get());
       while (_mysql.fetch_row(res))
@@ -299,15 +297,14 @@ void reporting_stream::_close_inconsistent_events(char const* event_type,
       }
     }
     {
-      std::ostringstream oss;
-      oss << "UPDATE " << table << "  SET end_time=" << end_time << "  WHERE "
-          << id << "=" << it->first << "  AND start_time=" << it->second;
+      std::string query(fmt::format("UPDATE {} SET end_time={} WHERE {}={} AND start_time={}",
+          table, end_time, id, it->first, it->second));
 
       std::string err_msg(
           fmt::format("BAM-BI: could not close inconsistent event of {} {} "
                       "starting at {}: ",
                       event_type, it->first, it->second));
-      _mysql.run_query(oss.str(), err_msg, true);
+      _mysql.run_query(query, err_msg, true);
     }
   }
 }
@@ -824,9 +821,8 @@ void reporting_stream::_process_dimension_ba(
   _dimension_ba_insert.bind_value_as_f64(4, dba.sla_month_percent_warn);
   _dimension_ba_insert.bind_value_as_f64(5, dba.sla_duration_crit);
   _dimension_ba_insert.bind_value_as_f64(6, dba.sla_duration_warn);
-  std::ostringstream oss_err;
-  oss_err << "BAM-BI: could not insert BA " << dba.ba_id << ": ";
-  _mysql.run_statement(_dimension_ba_insert, oss_err.str(), true);
+  std::string err_msg(fmt::format("BAM-BI: could not insert BA {}: ", dba.ba_id));
+  _mysql.run_statement(_dimension_ba_insert, err_msg, true);
 }
 
 /**
