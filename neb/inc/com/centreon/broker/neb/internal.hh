@@ -68,7 +68,7 @@ enum data_element {
 extern std::string gl_configuration_file;
 
 // Sender object.
-extern multiplexing::publisher gl_publisher;
+extern multiplexing::publisher* gl_publisher;
 
 // Registered callbacks.
 extern std::list<std::shared_ptr<neb::callback> > gl_registered_callbacks;

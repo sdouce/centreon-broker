@@ -30,4 +30,4 @@ using namespace com::centreon::broker;
 std::string neb::gl_configuration_file;
 
 // Sender object.
-multiplexing::publisher neb::gl_publisher;
+multiplexing::publisher* neb::gl_publisher = nullptr;

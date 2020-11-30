@@ -462,7 +462,7 @@ static void send_instance_configuration() {
       new neb::instance_configuration);
   ic->loaded = true;
   ic->poller_id = config::applier::state::instance().poller_id();
-  neb::gl_publisher.write(ic);
+  neb::gl_publisher->write(ic);
 }
 
 /**************************************

@@ -245,7 +245,7 @@ void generator::run() {
     }
 
     // Send event.
-    gl_publisher.write(ss);
+    gl_publisher->write(ss);
   }
   return;
 }

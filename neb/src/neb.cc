@@ -35,6 +35,7 @@
 #include "com/centreon/broker/neb/internal.hh"
 #include "com/centreon/broker/neb/monitoring_logger.hh"
 #include "com/centreon/engine/nebcallbacks.hh"
+#include "com/centreon/broker/pool.hh"
 
 using namespace com::centreon::broker;
 
@@ -164,6 +165,8 @@ int nebmodule_init(int flags, char const* args, void* handle) {
       com::centreon::broker::config::parser p;
       com::centreon::broker::config::state s{
           p.parse(neb::gl_configuration_file)};
+      pool::start(s.pool_size());
+      neb::gl_publisher = new multiplexing::publisher();
 
       // Apply loggers.
       com::centreon::broker::config::applier::logger::instance().apply(
