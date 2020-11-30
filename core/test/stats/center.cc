@@ -20,6 +20,7 @@
 
 #include <gtest/gtest.h>
 
+#include "com/centreon/broker/config/applier/init.hh"
 #include "com/centreon/broker/pool.hh"
 
 using namespace com::centreon::broker;
@@ -27,7 +28,7 @@ using namespace com::centreon::broker::stats;
 
 class StatsCenterTest : public ::testing::Test {
  public:
-  void SetUp() override { pool::start(0); }
+  void SetUp() override { config::applier::init(); pool::start(0); }
   void TearDown() override {}
 };
 
