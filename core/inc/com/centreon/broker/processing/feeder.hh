@@ -49,8 +49,8 @@ namespace processing {
  */
 class feeder {
   const std::string _name;
-
   FeederStats* _stats;
+  EndpointStats* _ep_stats;
   enum state { stopped, running, finished };
   // Condition variable used when waiting for the thread to finish
   std::thread _thread;

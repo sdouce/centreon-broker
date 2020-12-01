@@ -51,9 +51,7 @@ void pool::start(size_t size) {
  *
  * @return the IO context.
  */
-asio::io_context& pool::io_context() {
-  return instance()._io_context;
-}
+asio::io_context& pool::io_context() { return instance()._io_context; }
 
 /**
  * @brief Default constructor. Private, it is called throw the static instance()
@@ -114,9 +112,7 @@ void pool::_start(size_t size) {
 /**
  * @brief Destructor
  */
-pool::~pool() noexcept {
-  _stop();
-}
+pool::~pool() noexcept { _stop(); }
 
 /**
  * @brief Stop the thread pool.
@@ -153,10 +149,13 @@ void pool::_check_latency() {
   asio::post(_io_context, [start, this] {
     auto end = std::chrono::system_clock::now();
     auto duration = std::chrono::duration<double, std::milli>(end - start);
-    stats::center::instance().update(_stats->mutable_latency(),
-                                     fmt::format("{:.3f}ms", duration.count()));
+    stats::center::instance().update(
+        _stats->mutable_latency(),
+        fmt::format("{:.3f}ms", duration.count()));
     log_v2::core()->trace("Thread pool latency {:.3f}ms", duration.count());
   });
   _timer.expires_after(std::chrono::seconds(10));
   _timer.async_wait(std::bind(&pool::_check_latency, this));
 }
+
+double pool::get_last_check_latency() { return _last_check_latency; }

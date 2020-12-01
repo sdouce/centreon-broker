@@ -19,16 +19,23 @@
 #include "com/centreon/broker/stats/center.hh"
 
 #include <gtest/gtest.h>
-
 #include "com/centreon/broker/config/applier/init.hh"
 #include "com/centreon/broker/pool.hh"
+#include "com/centreon/broker/version.hh"
+#include <iostream>
+#include <unistd.h>
+#include <fmt/core.h>
+#include <json11.hpp>
 
 using namespace com::centreon::broker;
 using namespace com::centreon::broker::stats;
 
 class StatsCenterTest : public ::testing::Test {
  public:
-  void SetUp() override { config::applier::init(); pool::start(0); }
+  void SetUp() override {
+    pool::start(0);
+    config::applier::init();
+  }
   void TearDown() override {}
 };
 
@@ -38,9 +45,17 @@ TEST_F(StatsCenterTest, Simple) {
   stats.update(ep->mutable_status(), std::string("OK"));
   stats.update(ep->mutable_state(), std::string("Connected"));
   stats.update(&EndpointStats::set_queued_events, ep, 18u);
+
+  std::string stats_to_evaluate = stats.to_string();
+  std::string err;
+  json11::Json const& result{json11::Json::parse(stats_to_evaluate, err)};
+
+  std::cout << stats_to_evaluate << std::endl;
+
+  ASSERT_TRUE(result["now"].is_string());
+  ASSERT_EQ(result["endpoint"][0]["name"].string_value(), "foobar");
+  ASSERT_EQ(result["endpoint"][0]["state"].string_value(), "Connected");
+  ASSERT_EQ(result["endpoint"][0]["status"].string_value(), "OK");
+  ASSERT_EQ(result["endpoint"][0]["queuedEvents"].number_value(), 18u);
   ASSERT_TRUE(ep);
-  ASSERT_EQ(stats.to_string(),
-            "{\"generic\":{\"version\":{\"major\":20,\"minor\":10,\"patch\":1}}"
-            ",\"endpoint\":[{\"name\":\"foobar\",\"state\":\"Connected\","
-            "\"status\":\"OK\",\"queuedEvents\":18}]}");
 }

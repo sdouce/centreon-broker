@@ -23,8 +23,17 @@
 using namespace com::centreon::broker;
 using namespace com::centreon::broker::processing;
 
+/**
+ * Constructor
+ */
 endpoint::endpoint(const std::string& name)
     : _name(name), _stats(stats::center::instance().register_endpoint(name)) {}
+/**
+ * Destructor
+ */
+endpoint::~endpoint() noexcept {
+  stats::center::instance().unregister_endpoint(_name);
+}
 
 /**
  *  Get this thread name.
@@ -126,13 +135,15 @@ void endpoint::set_status(const std::string& status) {
 }
 
 void endpoint::set_last_connection_attempt(timestamp last_connection_attempt) {
-  stats::center::instance().update(
-      &EndpointStats::set_last_connection_attempt, _stats, last_connection_attempt.get_time_t());
+  stats::center::instance().update(&EndpointStats::set_last_connection_attempt,
+                                   _stats,
+                                   last_connection_attempt.get_time_t());
 }
 
 void endpoint::set_last_connection_success(timestamp last_connection_success) {
-  stats::center::instance().update(
-      &EndpointStats::set_last_connection_success, _stats, last_connection_success.get_time_t());
+  stats::center::instance().update(&EndpointStats::set_last_connection_success,
+                                   _stats,
+                                   last_connection_success.get_time_t());
 }
 
 void endpoint::set_last_event_at(timestamp last_event_at) {

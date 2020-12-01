@@ -64,6 +64,7 @@ CCB_BEGIN()
  */
 class pool {
   static size_t _pool_size;
+  double _last_check_latency;
   static std::mutex _init_m;
   static std::atomic_bool _initialized;
   static pool _instance;
@@ -92,6 +93,8 @@ class pool {
   static pool& instance();
   static asio::io_context& io_context();
   uint32_t get_current_size() const;
+  //used for test
+  double get_last_check_latency();
 };
 
 CCB_END()

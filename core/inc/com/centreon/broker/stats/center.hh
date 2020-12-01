@@ -56,6 +56,7 @@ namespace stats {
 class center {
   asio::io_context::strand _strand;
   BrokerStats _stats;
+  int _json_stats_file_creation;
 
   center();
 
@@ -64,12 +65,15 @@ class center {
   std::string to_string();
 
   EndpointStats* register_endpoint(const std::string& name);
+  bool unregister_endpoint(const std::string& name);
   FeederStats* register_feeder(EndpointStats* ep_stats,
                                const std::string& name);
+  bool unregister_feeder(EndpointStats* ep_stats,
+                              const std::string& name);
   ConflictManagerStats* register_conflict_manager();
-  ModuleStats* register_modules();
-
-  /**
+  ModuleStats* register_modules(void);
+  int get_json_stats_file_creation(void); 
+    /**
    * @brief Set the value pointed by ptr to the value value.
    *
    * @tparam T The template class.

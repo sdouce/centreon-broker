@@ -59,7 +59,7 @@ class endpoint {
 
  public:
   endpoint(const std::string& name);
-  virtual ~endpoint() noexcept {};
+  virtual ~endpoint() noexcept;
   virtual void update() {}
   virtual void start() = 0;
   virtual void exit() = 0;

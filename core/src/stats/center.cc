@@ -26,6 +26,7 @@
 #include "com/centreon/broker/misc/filesystem.hh"
 #include "com/centreon/broker/modules/loader.hh"
 #include "com/centreon/broker/version.hh"
+#include <iostream>
 
 using namespace com::centreon::broker;
 using namespace com::centreon::broker::stats;
@@ -39,9 +40,10 @@ center& center::instance() {
 
 center::center() : _strand(pool::instance().io_context()) {
   *_stats.mutable_version() = version::string;
-  *_stats.mutable_asio_version() =
-      fmt::format("{}.{}.{}", ASIO_VERSION / 100000, ASIO_VERSION / 100 % 1000,
-                  ASIO_VERSION % 100);
+  *_stats.mutable_asio_version() = fmt::format("{}.{}.{}",
+                                               ASIO_VERSION / 100000,
+                                               ASIO_VERSION / 100 % 1000,
+                                               ASIO_VERSION % 100);
   _stats.set_pid(getpid());
 
   /* Bringing modules statistics */
@@ -49,7 +51,8 @@ center::center() : _strand(pool::instance().io_context()) {
     config::applier::modules& mod_applier(config::applier::modules::instance());
     for (config::applier::modules::iterator it(mod_applier.begin()),
          end(mod_applier.end());
-         it != end; ++it) {
+         it != end;
+         ++it) {
       auto m = _stats.add_modules();
       *m->mutable_name() = it->first;
       *m->mutable_size() =
@@ -83,6 +86,17 @@ FeederStats* center::register_feeder(EndpointStats* ep_stats,
   return retval.get();
 }
 
+bool center::unregister_feeder(EndpointStats* ep_stats,
+                               const std::string& name) {
+  std::promise<bool> p;
+  std::future<bool> retval = p.get_future();
+  _strand.post([this, ep_stats, &p, &name] {
+    auto ep = (*ep_stats->mutable_feeder()).erase(name);
+    p.set_value(true);
+  });
+  return retval.get();
+}
+
 /**
  * @brief When an endpoint needs to write statistics, it primarily has to
  * call this function to be registered in the statistic center and to get
@@ -105,6 +119,23 @@ EndpointStats* center::register_endpoint(const std::string& name) {
         "{}.queue.{}", config::applier::state::instance().cache_dir(), name);
 
     p.set_value(ep);
+  });
+  return retval.get();
+}
+
+bool center::unregister_endpoint(const std::string& name) {
+  std::promise<bool> p;
+  std::future<bool> retval = p.get_future();
+  _strand.post([this, &p, &name] {
+    for (auto it = _stats.mutable_endpoint()->begin();
+         it != _stats.mutable_endpoint()->end();
+         ++it) {
+      if (it->name() == name) {
+        _stats.mutable_endpoint()->erase(it);
+        break;
+      }
+    }
+    p.set_value(true);
   });
   return retval.get();
 }
@@ -153,14 +184,24 @@ ModuleStats* center::register_modules() {
 std::string center::to_string() {
   std::promise<std::string> p;
   std::future<std::string> retval = p.get_future();
-  _strand.post([& s = this->_stats, &p] {
-    const JsonPrintOptions options;
-    std::string retval;
-    std::time_t now;
-    time(&now);
-    s.mutable_now()->set_seconds(now);
-    MessageToJsonString(s, &retval, options);
-    p.set_value(std::move(retval));
-  });
+  _strand.post([
+    &s = this->_stats,
+    &p,
+    &tmpnow = this->_json_stats_file_creation
+  ] {
+      const JsonPrintOptions options;
+      std::string retval;
+      std::time_t now;
+      time(&now);
+      tmpnow = (int)now;
+      s.set_now(now);
+      MessageToJsonString(s, &retval, options);
+      p.set_value(std::move(retval));
+    });
+
   return retval.get();
+}
+
+int center::get_json_stats_file_creation(void) {
+  return _json_stats_file_creation;
 }

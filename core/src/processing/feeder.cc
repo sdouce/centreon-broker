@@ -56,10 +56,11 @@ feeder::feeder(std::string const& name,
       _should_exit{false},
       _client(client),
       _subscriber(name, false, read_filters, write_filters),
+      _ep_stats(ep_stats),
       _stats(stats::center::instance().register_feeder(ep_stats, name)) {
   if (!client)
-    throw exceptions::msg()
-        << "could not process '" << _name << "' with no client stream";
+    throw exceptions::msg() << "could not process '" << _name
+                            << "' with no client stream";
   else
     _client->register_stats(_stats->mutable_stream());
 
@@ -67,15 +68,15 @@ feeder::feeder(std::string const& name,
                                    misc::dump_filters(read_filters));
   stats::center::instance().update(_stats->mutable_write_filters(),
                                    misc::dump_filters(write_filters));
-  stats::center::instance().update(&FeederStats::set_last_connection_attempt,
-                                   _stats, std::time(nullptr));
-  stats::center::instance().update(&FeederStats::set_last_connection_success,
-                                   _stats, std::time(nullptr));
+  stats::center::instance().update(
+      &FeederStats::set_last_connection_attempt, _stats, std::time(nullptr));
+  stats::center::instance().update(
+      &FeederStats::set_last_connection_success, _stats, std::time(nullptr));
   set_state("connecting");
   std::unique_lock<std::mutex> lck(_state_m);
   _thread = std::thread(&feeder::_callback, this);
   _state_cv.wait(lck,
-                 [& state = this->_state] { return state != feeder::stopped; });
+                 [&state = this->_state] { return state != feeder::stopped; });
 }
 
 /**
@@ -96,6 +97,8 @@ feeder::~feeder() {
       _thread.join();
       break;
   }
+  // unregister feeder
+  stats::center::instance().unregister_feeder(_ep_stats, _name);
 }
 
 bool feeder::is_finished() const noexcept {
@@ -167,7 +170,8 @@ void feeder::_callback() noexcept {
         try {
           misc::read_lock lock(_client_m);
           timed_out_stream = !_client->read(d, 0);
-        } catch (exceptions::shutdown const& e) {
+        }
+        catch (exceptions::shutdown const& e) {
           stream_can_read = false;
         }
         if (d) {
@@ -188,9 +192,10 @@ void feeder::_callback() noexcept {
       if (muxer_can_read)
         try {
           timed_out_muxer = !_subscriber.get_muxer().read(d, 0);
-        } catch (exceptions::shutdown const& e) {
-          muxer_can_read = false;
         }
+      catch (exceptions::shutdown const& e) {
+        muxer_can_read = false;
+      }
       if (d) {
         log_v2::processing()->trace(
             "feeder '{}': sending 1 event from muxer to client", _name);
@@ -211,16 +216,19 @@ void feeder::_callback() noexcept {
         ::usleep(100000);
       }
     }
-  } catch (exceptions::shutdown const& e) {
+  }
+  catch (exceptions::shutdown const& e) {
     // Normal termination.
     (void)e;
     log_v2::core()->info("feeder '{}' shut down", _name);
-  } catch (std::exception const& e) {
+  }
+  catch (std::exception const& e) {
     logging::error(logging::medium)
         << "feeder: error occured while processing client '" << _name
         << "': " << e.what();
     set_last_error(e.what());
-  } catch (...) {
+  }
+  catch (...) {
     logging::error(logging::high)
         << "feeder: unknown error occured while processing client '" << _name
         << "'";
@@ -275,8 +283,8 @@ void feeder::set_state(const std::string& state) {
 }
 
 void feeder::set_queued_events(uint32_t events) {
-  stats::center::instance().update(&FeederStats::set_queued_events, _stats,
-                                   events);
+  stats::center::instance().update(
+      &FeederStats::set_queued_events, _stats, events);
 }
 
 void feeder::set_last_error(const std::string& last_error) {
@@ -284,23 +292,23 @@ void feeder::set_last_error(const std::string& last_error) {
 }
 
 void feeder::set_event_processing_speed(double value) {
-  stats::center::instance().update(&FeederStats::set_event_processing_speed,
-                                   _stats, value);
+  stats::center::instance().update(
+      &FeederStats::set_event_processing_speed, _stats, value);
 }
 
 void feeder::set_last_event_at(timestamp last_event_at) {
-  stats::center::instance().update(&FeederStats::set_last_event_at, _stats,
-                                   last_event_at.get_time_t());
+  stats::center::instance().update(
+      &FeederStats::set_last_event_at, _stats, last_event_at.get_time_t());
 }
 
 void feeder::set_queue_file_enabled(bool value) {
-  stats::center::instance().update(&FeederStats::set_queue_file_enabled, _stats,
-                                   value);
+  stats::center::instance().update(
+      &FeederStats::set_queue_file_enabled, _stats, value);
 }
 
 void feeder::set_unacknowledged_events(uint32_t value) {
-  stats::center::instance().update(&FeederStats::set_unacknowledged_events,
-                                   _stats, value);
+  stats::center::instance().update(
+      &FeederStats::set_unacknowledged_events, _stats, value);
 }
 
 /**
@@ -337,6 +345,4 @@ void feeder::tick(uint32_t events) {
   _event_processing_speed.tick(events);
 }
 
-const std::string& feeder::get_name() const {
-  return _name;
-}
+const std::string& feeder::get_name() const { return _name; }
