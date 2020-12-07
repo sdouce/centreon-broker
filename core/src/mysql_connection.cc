@@ -34,21 +34,19 @@ const int STR_SIZE = 200;
 const int MAX_ATTEMPTS = 10;
 
 void (mysql_connection::*const mysql_connection::_task_processing_table[])(
-    mysql_task* task) = {
-    &mysql_connection::_query,
-    &mysql_connection::_query_res,
-    &mysql_connection::_query_int,
-    &mysql_connection::_commit,
-    &mysql_connection::_prepare,
-    &mysql_connection::_statement,
-    &mysql_connection::_statement_res,
-    &mysql_connection::_statement_int<int>,
-    &mysql_connection::_statement_int<int64_t>,
-    &mysql_connection::_statement_int<uint32_t>,
-    &mysql_connection::_statement_int<uint64_t>,
-    &mysql_connection::_fetch_row_sync,
-    &mysql_connection::_finish,
-};
+    mysql_task* task) = {&mysql_connection::_query,
+                         &mysql_connection::_query_res,
+                         &mysql_connection::_query_int,
+                         &mysql_connection::_commit,
+                         &mysql_connection::_prepare,
+                         &mysql_connection::_statement,
+                         &mysql_connection::_statement_res,
+                         &mysql_connection::_statement_int<int>,
+                         &mysql_connection::_statement_int<int64_t>,
+                         &mysql_connection::_statement_int<uint32_t>,
+                         &mysql_connection::_statement_int<uint64_t>,
+                         &mysql_connection::_fetch_row_sync,
+                         &mysql_connection::_finish, };
 
 /******************************************************************************/
 /*                      Methods executed by this thread                       */
@@ -143,8 +141,7 @@ void mysql_connection::_commit(mysql_task* t) {
       std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
     log_v2::sql()->trace("mysql_connection: commit done");
-  }
-  else
+  } else
     res = 0;
 
   if (res) {
@@ -169,13 +166,14 @@ void mysql_connection::_prepare(mysql_task* t) {
   mysql_task_prepare* task(static_cast<mysql_task_prepare*>(t));
   if (_stmt[task->id]) {
     log_v2::sql()->info("mysql_connection: Statement already prepared: {} ({})",
-                        task->id, task->query);
+                        task->id,
+                        task->query);
     return;
   }
 
   _stmt_query[task->id] = task->query;
-  log_v2::sql()->debug("mysql_connection: prepare statement {}: {}", task->id,
-                       task->query);
+  log_v2::sql()->debug(
+      "mysql_connection: prepare statement {}: {}", task->id, task->query);
   MYSQL_STMT* stmt(mysql_stmt_init(_conn));
   if (!stmt)
     set_error_message("statement initialization failed: insuffisant memory");
@@ -192,7 +190,8 @@ void mysql_connection::_prepare(mysql_task* t) {
 void mysql_connection::_statement(mysql_task* t) {
   mysql_task_statement* task(static_cast<mysql_task_statement*>(t));
   log_v2::sql()->debug("mysql_connection: execute statement {}: {}",
-                       task->statement_id, _stmt_query[task->statement_id]);
+                       task->statement_id,
+                       _stmt_query[task->statement_id]);
   MYSQL_STMT* stmt(_stmt[task->statement_id]);
   if (!stmt) {
     log_v2::sql()->error("mysql_connection: no statement to execute");
@@ -250,7 +249,8 @@ void mysql_connection::_statement(mysql_task* t) {
 void mysql_connection::_statement_res(mysql_task* t) {
   mysql_task_statement_res* task(static_cast<mysql_task_statement_res*>(t));
   log_v2::sql()->debug("mysql_connection: execute statement {}: {}",
-                       task->statement_id, _stmt_query[task->statement_id]);
+                       task->statement_id,
+                       _stmt_query[task->statement_id]);
   MYSQL_STMT* stmt(_stmt[task->statement_id]);
   if (!stmt) {
     log_v2::sql()->error("mysql_connection: no statement to execute");
@@ -354,7 +354,8 @@ void mysql_connection::_statement_int(mysql_task* t) {
   mysql_task_statement_int<T>* task(
       static_cast<mysql_task_statement_int<T>*>(t));
   log_v2::sql()->debug("mysql_connection: execute statement {}: {}",
-                       task->statement_id, _stmt_query[task->statement_id]);
+                       task->statement_id,
+                       _stmt_query[task->statement_id]);
   MYSQL_STMT* stmt(_stmt[task->statement_id]);
   if (!stmt) {
     log_v2::sql()->error("mysql_connection: no statement to execute");
@@ -437,9 +438,7 @@ void mysql_connection::_fetch_row_sync(mysql_task* t) {
  *
  * @return a boolean True on error, False otherwise.
  */
-bool mysql_connection::is_in_error() const {
-  return _error.is_active();
-}
+bool mysql_connection::is_in_error() const { return _error.is_active(); }
 
 std::string mysql_connection::get_error_message() {
   std::lock_guard<std::mutex> lck(_error_m);
@@ -450,18 +449,14 @@ std::string mysql_connection::get_error_message() {
  * @brief Disable the connection's error. Therefore, the connection is no more
  * in error.
  */
-void mysql_connection::clear_error() {
-  _error.clear();
-}
+void mysql_connection::clear_error() { _error.clear(); }
 
 void mysql_connection::_finish(mysql_task* t __attribute__((unused))) {
   _finished = true;
   _tasks_condition.notify_all();
 }
 
-bool mysql_connection::is_finished() const {
-  return _finished;
-}
+bool mysql_connection::is_finished() const { return _finished; }
 
 std::string mysql_connection::_get_stack() {
   std::string retval;
@@ -518,8 +513,13 @@ void mysql_connection::_run() {
     set_error_message(::mysql_error(_conn));
     return;
   } else {
-    while (!mysql_real_connect(_conn, _host.c_str(), _user.c_str(),
-                               _pwd.c_str(), _name.c_str(), _port, nullptr,
+    while (!mysql_real_connect(_conn,
+                               _host.c_str(),
+                               _user.c_str(),
+                               _pwd.c_str(),
+                               _name.c_str(),
+                               _port,
+                               nullptr,
                                CLIENT_FOUND_ROWS)) {
       logging::error(logging::high)
           << "mysql_connection: The mysql/mariadb database seems not started. "
@@ -541,18 +541,26 @@ void mysql_connection::_run() {
   _result_condition.notify_all();
 
   while (!_finished) {
-    std::list<std::shared_ptr<database::mysql_task>> tasks_list;
+    std::list<std::shared_ptr<database::mysql_task> > tasks_list;
     std::unique_lock<std::mutex> locker(_list_mutex);
     if (!_tasks_list.empty()) {
       std::swap(_tasks_list, tasks_list);
       locker.unlock();
     } else {
       _tasks_count = 0;
+
+      stats::center::instance().update(&MysqlConnectionStats::set_waiting_task,
+                                       _stats,
+                                       static_cast<uint32_t>(_tasks_count));
+
       _tasks_condition.wait(locker);
       continue;
     }
     for (auto task : tasks_list) {
       --_tasks_count;
+      stats::center::instance().update(&MysqlConnectionStats::set_waiting_task,
+                                       _stats,
+                                       static_cast<uint32_t>(_tasks_count));
       if (_task_processing_table[task->type])
         (this->*(_task_processing_table[task->type]))(task.get());
       else {
@@ -563,7 +571,8 @@ void mysql_connection::_run() {
   }
   for (std::unordered_map<uint32_t, MYSQL_STMT*>::iterator it(_stmt.begin()),
        end(_stmt.end());
-       it != end; ++it)
+       it != end;
+       ++it)
     mysql_stmt_close(it->second);
 
   mysql_close(_conn);
@@ -574,7 +583,8 @@ void mysql_connection::_run() {
 /*                    Methods executed by the main thread                     */
 /******************************************************************************/
 
-mysql_connection::mysql_connection(database_config const& db_cfg)
+mysql_connection::mysql_connection(database_config const& db_cfg,
+                                   MysqlManagerStats* stats)
     : _conn(nullptr),
       _finished(false),
       _tasks_count(0),
@@ -585,11 +595,11 @@ mysql_connection::mysql_connection(database_config const& db_cfg)
       _name(db_cfg.get_name()),
       _port(db_cfg.get_port()),
       _started(false),
-      _qps(db_cfg.get_queries_per_transaction()) {
+      _qps(db_cfg.get_queries_per_transaction()),
+      _stats(stats::center::instance().register_mysql_connection(stats)) {
   std::unique_lock<std::mutex> locker(_result_mutex);
   _thread.reset(new std::thread(&mysql_connection::_run, this));
-  while (!_started)
-    _result_condition.wait(locker);
+  _result_condition.wait(locker, [this] { return _started; });
 }
 
 mysql_connection::~mysql_connection() {
@@ -606,6 +616,9 @@ void mysql_connection::_push(std::shared_ptr<mysql_task> const& q) {
   std::lock_guard<std::mutex> locker(_list_mutex);
   _tasks_list.push_back(q);
   ++_tasks_count;
+  stats::center::instance().update(&MysqlConnectionStats::set_waiting_task,
+                                   _stats,
+                                   static_cast<uint32_t>(_tasks_count));
   _tasks_condition.notify_all();
 }
 
@@ -685,6 +698,4 @@ bool mysql_connection::match_config(database_config const& db_cfg) const {
          db_cfg.get_queries_per_transaction() == _qps;
 }
 
-int mysql_connection::get_tasks_count() const {
-  return _tasks_count;
-}
+int mysql_connection::get_tasks_count() const { return _tasks_count; }

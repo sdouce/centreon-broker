@@ -63,8 +63,12 @@ message ConflictManagerStats {
   string state = 9;
 }
 
-message SqlManagerStats {
-  uint32 delay_since_last_check = 1;
+message MysqlConnectionStats {
+  uint32 waiting_task = 1;
+}
+
+message MysqlManagerStats {
+  repeated MysqlConnectionStats connections = 1;
 }
 
 message StreamStats {
@@ -137,4 +141,5 @@ message BrokerStats {
   repeated EndpointStats endpoint = 6;
   ConflictManagerStats conflict_manager = 7;
   repeated ModuleStats modules = 8;
+  MysqlManagerStats mysql_manager = 9;
 }

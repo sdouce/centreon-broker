@@ -68,21 +68,25 @@ class center {
   bool unregister_endpoint(const std::string& name);
   FeederStats* register_feeder(EndpointStats* ep_stats,
                                const std::string& name);
-  bool unregister_feeder(EndpointStats* ep_stats,
-                              const std::string& name);
+  bool unregister_feeder(EndpointStats* ep_stats, const std::string& name);
   ConflictManagerStats* register_conflict_manager();
+  MysqlManagerStats* register_mysql_manager();
+  MysqlConnectionStats* register_mysql_connection(MysqlManagerStats* s);
   ModuleStats* register_modules(void);
-  int get_json_stats_file_creation(void); 
-    /**
-   * @brief Set the value pointed by ptr to the value value.
-   *
-   * @tparam T The template class.
-   * @param ptr A pointer to object of type T
-   * @param value The value of type T to set.
-   */
+  int get_json_stats_file_creation(void);
+  /**
+ * @brief Set the value pointed by ptr to the value value.
+ *
+ * @tparam T The template class.
+ * @param ptr A pointer to object of type T
+ * @param value The value of type T to set.
+ */
   template <typename T>
   void update(T* ptr, T value) {
-    _strand.post([ptr, value = std::move(value)] { *ptr = value; });
+    _strand.post([
+      ptr,
+      value = std::move(value)
+    ] { *ptr = value; });
   }
 
   /**

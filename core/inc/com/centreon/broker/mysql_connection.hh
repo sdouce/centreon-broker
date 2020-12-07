@@ -31,6 +31,7 @@
 #include "com/centreon/broker/database/mysql_stmt.hh"
 #include "com/centreon/broker/database/mysql_task.hh"
 #include "com/centreon/broker/database_config.hh"
+#include "com/centreon/broker/stats/center.hh"
 
 CCB_BEGIN()
 
@@ -48,7 +49,7 @@ class mysql_connection {
   /*                  Methods executed by the main thread                   */
   /**************************************************************************/
 
-  mysql_connection(database_config const& db_cfg);
+  mysql_connection(database_config const& db_cfg, MysqlManagerStats*);
   ~mysql_connection();
 
   void prepare_query(int id, std::string const& query);
@@ -69,8 +70,8 @@ class mysql_connection {
   void run_statement_and_get_int(database::mysql_stmt& stmt,
                                  std::promise<T>* promise,
                                  database::mysql_task::int_type type) {
-    _push(std::make_shared<database::mysql_task_statement_int<T>>(stmt, promise,
-                                                                  type));
+    _push(std::make_shared<database::mysql_task_statement_int<T> >(
+        stmt, promise, type));
   }
 
   void finish();
@@ -124,11 +125,12 @@ class mysql_connection {
   std::unique_ptr<std::thread> _thread;
   MYSQL* _conn;
 
+  MysqlConnectionStats* _stats;
   // Mutex and condition working on _tasks_list.
   std::mutex _list_mutex;
   std::condition_variable _tasks_condition;
   std::atomic<bool> _finished;
-  std::list<std::shared_ptr<database::mysql_task>> _tasks_list;
+  std::list<std::shared_ptr<database::mysql_task> > _tasks_list;
   std::atomic_int _tasks_count;
   bool _need_commit;
 

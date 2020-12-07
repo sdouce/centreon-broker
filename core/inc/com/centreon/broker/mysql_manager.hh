@@ -39,7 +39,7 @@ CCB_BEGIN()
 class mysql_manager {
  public:
   static mysql_manager& instance();
-  std::vector<std::shared_ptr<mysql_connection>> get_connections(
+  std::vector<std::shared_ptr<mysql_connection> > get_connections(
       database_config const& db_cfg);
   bool commit_if_needed();
   bool is_in_error() const;
@@ -53,14 +53,15 @@ class mysql_manager {
  private:
   mysql_manager();
   ~mysql_manager();
-  static mysql_manager _singleton;
+  // static mysql_manager _singleton;
   mutable std::mutex _cfg_mutex;
-  std::vector<std::shared_ptr<mysql_connection>> _connection;
+  std::vector<std::shared_ptr<mysql_connection> > _connection;
 
   int _current_thread;
 
   // last stats update timestamp
   time_t _stats_connections_timestamp;
+  MysqlManagerStats* _stats;
   // Number of tasks per connection
   std::vector<int> _stats_counts;
 };

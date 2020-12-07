@@ -97,6 +97,17 @@ bool center::unregister_feeder(EndpointStats* ep_stats,
   return retval.get();
 }
 
+MysqlConnectionStats* center::register_mysql_connection(
+    MysqlManagerStats* stats) {
+  std::promise<MysqlConnectionStats*> p;
+  std::future<MysqlConnectionStats*> retval = p.get_future();
+  _strand.post([this, stats, &p] {
+    auto ep = stats->add_connections();
+    p.set_value(ep);
+  });
+  return retval.get();
+}
+
 /**
  * @brief When an endpoint needs to write statistics, it primarily has to
  * call this function to be registered in the statistic center and to get
@@ -154,6 +165,24 @@ ConflictManagerStats* center::register_conflict_manager() {
   _strand.post([this, &p] {
     auto cm = _stats.mutable_conflict_manager();
     p.set_value(cm);
+  });
+  return retval.get();
+}
+
+/**
+ * @brief To allow the mysql manager to send statistics, it has to call this
+ * function to get a pointer to its statistics container.
+ * It is prohibited to directly write into the returned pointer. We must use
+ * the center member functions for this purpose.
+ *
+ * @return A pointer to the mysql_manager statistics.
+ */
+MysqlManagerStats* center::register_mysql_manager() {
+  std::promise<MysqlManagerStats*> p;
+  std::future<MysqlManagerStats*> retval = p.get_future();
+  _strand.post([this, &p] {
+    auto mm = _stats.mutable_mysql_manager();
+    p.set_value(mm);
   });
   return retval.get();
 }
