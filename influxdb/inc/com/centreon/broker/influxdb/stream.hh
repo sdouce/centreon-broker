@@ -60,7 +60,6 @@ class stream : public io::stream {
   ~stream();
   int flush();
   bool read(std::shared_ptr<io::data>& d, time_t deadline);
-  void statistics(json11::Json::object& tree) const override;
   int write(std::shared_ptr<io::data> const& d);
 
  private:
@@ -79,11 +78,7 @@ class stream : public io::stream {
 
   // Cache
   macro_cache _cache;
-
-  // Status members
-  std::string _status;
-  mutable std::mutex _statusm;
-};
+  };
 }  // namespace influxdb
 
 CCB_END()

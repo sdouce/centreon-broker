@@ -108,6 +108,23 @@ MysqlConnectionStats* center::register_mysql_connection(
   return retval.get();
 }
 
+bool center::unregister_mysql_connection(MysqlConnectionStats* c) {
+  std::promise<bool> p;
+  std::future<bool> retval = p.get_future();
+  _strand.post([this,c, &p] {
+    for (auto it = _stats.mutable_mysql_manager()->mutable_connections()->begin(),
+              end = _stats.mutable_mysql_manager()->mutable_connections()->end();
+              it != end; ++it) {
+        if (&(*it) == c) { 
+          _stats.mutable_mysql_manager()->mutable_connections()->erase(it);
+          break;
+        }
+    }
+    p.set_value(true);
+  });
+  return retval.get();
+}
+
 /**
  * @brief When an endpoint needs to write statistics, it primarily has to
  * call this function to be registered in the statistic center and to get
@@ -186,6 +203,17 @@ MysqlManagerStats* center::register_mysql_manager() {
   });
   return retval.get();
 }
+
+bool center::unregister_mysql_manager(void) {
+  std::promise<bool> p;
+  std::future<bool> retval = p.get_future();
+  _strand.post([this, &p] {
+    _stats.mutable_mysql_manager()->Clear();
+    p.set_value(true);
+  });
+  return retval.get();
+}
+
 
 /**
  * @brief To allow the conflict manager to send statistics, it has to call this

@@ -996,20 +996,6 @@ void stream::set_timeout(int timeout) {
   _timeout = timeout;
 }
 
-/**
- *  Get statistics.
- *
- *  @param[out] tree Output tree.
- */
-void stream::statistics(json11::Json::object& tree) const {
-  tree["bbdo_input_ack_limit"] = static_cast<double>(_ack_limit);
-  tree["bbdo_unacknowledged_events"] =
-      static_cast<double>(_events_received_since_last_ack);
-
-  if (_substream)
-    _substream->statistics(tree);
-}
-
 void stream::_write(std::shared_ptr<io::data> const& d) {
   assert(d);
 

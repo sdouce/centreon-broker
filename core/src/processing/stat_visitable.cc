@@ -16,8 +16,6 @@
 ** For more information : contact@centreon.com
 */
 
-#include "com/centreon/broker/processing/stat_visitable.hh"
-
 #include <unistd.h>
 
 #include <map>

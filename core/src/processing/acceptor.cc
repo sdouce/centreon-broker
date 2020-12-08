@@ -130,22 +130,6 @@ std::string const& acceptor::_get_write_filters() const {
   return _write_filters_str;
 }
 
-/**
- *  Forward the statistic to the feeders.
- *
- *  @param[in] tree  The tree.
- */
-void acceptor::_forward_statistic(json11::Json::object& tree) {
-  // Get statistic of acceptor.
-  _endp->stats(tree);
-  // Get statistics of feeders
-  for (auto& f : _feeders) {
-    json11::Json::object subtree;
-    f->stats(subtree);
-    tree[f->get_name()] = subtree;
-  }
-}
-
 void acceptor::_set_listening(bool listening) noexcept {
   _listening = listening;
   set_state(listening ? "listening" : "disconnected");

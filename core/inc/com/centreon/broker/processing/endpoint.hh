@@ -31,7 +31,6 @@
 #include <thread>
 
 #include "com/centreon/broker/namespace.hh"
-#include "com/centreon/broker/processing/stat_visitable.hh"
 #include "com/centreon/broker/stats/center.hh"
 #include "com/centreon/broker/misc/shared_mutex.hh"
 #include "com/centreon/broker/multiplexing/subscriber.hh"

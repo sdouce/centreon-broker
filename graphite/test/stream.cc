@@ -22,13 +22,16 @@
 #include <com/centreon/broker/graphite/connector.hh>
 #include "com/centreon/broker/exceptions/msg.hh"
 #include "com/centreon/broker/logging/manager.hh"
+#include "com/centreon/broker/stats/center.hh"
 #include "../../core/test/test_server.hh"
 
 using namespace com::centreon::broker;
-
 class graphiteStream : public testing::Test {
+ protected:
+  StreamStats _stats;
  public:
   void SetUp() override {
+    pool::start(0);
     _server.init();
     _thread = std::thread(&test_server::run, &_server);
 
@@ -247,7 +250,9 @@ TEST_F(graphiteStream, StatsAndConnector) {
   graphite::connector con;
   con.connect_to("metric_name", "status_name", "a", "user", "pass", "localhost", 4242, 3, cache);
 
-  json11::Json::object obj;
-  con.open()->statistics(obj);
-  ASSERT_TRUE(obj["state"].string_value().empty());
+  auto s = con.open();
+  s->register_stats(&_stats);
+  std::cout << stats::center::instance().get(&StreamStats::name, &_stats) << std::endl;
+
+  //ASSERT_TRUE(obj["state"].string_value().empty());
 }

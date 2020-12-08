@@ -603,6 +603,7 @@ mysql_connection::mysql_connection(database_config const& db_cfg,
 }
 
 mysql_connection::~mysql_connection() {
+  stats::center::instance().unregister_mysql_connection(_stats);
   log_v2::sql()->info("mysql_connection: finished");
   finish();
   _thread->join();

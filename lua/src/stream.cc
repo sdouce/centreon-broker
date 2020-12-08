@@ -216,15 +216,3 @@ int stream::flush() {
   log_v2::lua()->debug("stream: flush {} events acknowledged", retval);
   return retval;
 }
-
-void stream::statistics(json11::Json::object& tree) const {
-  std::lock_guard<std::mutex> lck(_exposed_events_m);
-  double avg = 0;
-  for (auto& s : _stats)
-    avg += s;
-  avg /= _stats.size();
-  tree["waiting_events"] = json11::Json::object{
-      {"speed", fmt::format("{} events/s", avg)},
-      {"handled_events", static_cast<int>(_events_size)},
-      {"waiting_events", static_cast<int>(_exposed_events.size())}};
-}

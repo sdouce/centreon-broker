@@ -106,35 +106,6 @@ bool feeder::is_finished() const noexcept {
   return _state == finished && _should_exit;
 }
 
-/**
- *  Get the read filters used by the feeder.
- *
- *  @return  The read filters used by the feeder.
- */
-
-/**
- *  Get the write filters used by the feeder.
- *
- *  @return  The write filters used by the feeder.
- */
-// std::string const& feeder::_get_write_filters() const {
-//  return _subscriber.get_muxer().get_write_filters_str();
-//}
-
-/**
- *  Forward to stream.
- *
- *  @param[in] tree  The statistic tree.
- */
-void feeder::_forward_statistic(json11::Json::object& tree) {
-  if (_client_m.try_lock_shared_for(300)) {
-    if (_client)
-      _client->statistics(tree);
-    _client_m.unlock();
-  }
-  _subscriber.get_muxer().statistics(tree);
-}
-
 void feeder::_callback() noexcept {
   log_v2::processing()->info("feeder: thread of client '{}' is starting",
                              _name);
@@ -309,32 +280,6 @@ void feeder::set_queue_file_enabled(bool value) {
 void feeder::set_unacknowledged_events(uint32_t value) {
   stats::center::instance().update(
       &FeederStats::set_unacknowledged_events, _stats, value);
-}
-
-/**
- *  Gather statistics on this thread.
- *
- *  @param[in] tree  Tree of information.
- */
-void feeder::stats(json11::Json::object& tree) {
-  std::lock_guard<std::mutex> lock(_stat_mutex);
-  tree["state"] =
-      "";  // FIXME DBR: std::string(_state); It is now is protobuf object
-  tree["read_filters"] = "";   // FIXME DBR: _get_read_filters();
-  tree["write_filters"] = "";  // FIXME DBR: _get_write_filters();
-  tree["event_processing_speed"] =
-      _event_processing_speed.get_processing_speed();
-  tree["last_connection_attempt"] =
-      -1;  // FIXME DBR: static_cast<double>(_last_connection_attempt);
-  tree["last_connection_success"] =
-      -1;  // FIXME DBR: static_cast<double>(_last_connection_success);
-  tree["last_event_at"] =
-      static_cast<double>(_event_processing_speed.get_last_event_time());
-  tree["queued_events"] =
-      0;  // FIXME DBR: static_cast<int>(_get_queued_events());
-
-  // Forward the stats.
-  _forward_statistic(tree);
 }
 
 /**

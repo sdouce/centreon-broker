@@ -70,16 +70,6 @@ bool persistent_file::read(std::shared_ptr<io::data>& d, time_t deadline) {
 }
 
 /**
- *  Generate statistics of persistent file.
- *
- *  @param[out] tree  Statistics tree.
- */
-void persistent_file::statistics(json11::Json::object& tree) const {
-  _substream->statistics(tree);
-  return;
-}
-
-/**
  *  Write data to file.
  *
  *  @param[in] d  Input data.

@@ -103,7 +103,6 @@ class stream : public io::stream {
   //  bool filter(uint32_t type);
   int flush() override;
   bool stats_mean_square(double& a, double& b) const noexcept;
-  void statistics(json11::Json::object& tree) const override;
 };
 }  // namespace lua
 

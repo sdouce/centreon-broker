@@ -90,7 +90,6 @@ class failover : public endpoint {
   // From stat_visitable
   std::string const& _get_write_filters() const override;
   uint32_t _get_queued_events() const override;
-  virtual void _forward_statistic(json11::Json::object& tree) override;
 
  private:
   void _launch_failover();

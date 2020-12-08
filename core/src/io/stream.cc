@@ -72,15 +72,6 @@ std::shared_ptr<stream> stream::get_substream() {
 }
 
 /**
- *  Generate statistics about the stream.
- *
- *  @param[out] tree Output tree.
- */
-void stream::statistics(json11::Json::object& tree) const {
-  (void)tree;
-}
-
-/**
  *  Configuration update.
  */
 void stream::update() {}

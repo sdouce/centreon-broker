@@ -505,39 +505,6 @@ std::string const& failover::_get_write_filters() const {
 }
 
 /**
- *  Forward to failover.
- *
- *  @param[in] tree  The tree.
- */
-void failover::_forward_statistic(json11::Json::object& tree) {
-  {
-    std::lock_guard<std::mutex> lock(_status_m);
-    tree["status"] = _status;
-  }
-  {
-    std::unique_lock<std::timed_mutex> stream_lock(_stream_m, std::defer_lock);
-    if (stream_lock.try_lock_for(std::chrono::milliseconds(100))) {
-      if (_stream)
-        _stream->statistics(tree);
-    } else
-      tree["status"] = "busy";
-  }
-  _subscriber->get_muxer().statistics(tree);
-
-  json11::Json::object subtree;
-  if (_failover)
-    _failover->stats(subtree);
-
-  tree["failover"] = subtree;
-}
-
-/**************************************
- *                                     *
- *           Private Methods           *
- *                                     *
- **************************************/
-
-/**
  *  Launch failover of this endpoint.
  */
 void failover::_launch_failover() {

@@ -452,7 +452,6 @@ set(LIBROKER_SOURCES
   ${SRC_DIR}/processing/acceptor.cc
   ${SRC_DIR}/processing/failover.cc
   ${SRC_DIR}/processing/feeder.cc
-  ${SRC_DIR}/processing/stat_visitable.cc
   ${SRC_DIR}/processing/endpoint.cc
   ${SRC_DIR}/stats/center.cc
   ${SRC_DIR}/stats/helper.cc
@@ -567,7 +566,6 @@ set(LIBROKER_SOURCES
   ${INC_DIR}/processing/endpoint.hh
   ${INC_DIR}/processing/failover.hh
   ${INC_DIR}/processing/feeder.hh
-  ${INC_DIR}/processing/stat_visitable.hh
   ${INC_DIR}/stats/center.hh
   ${INC_DIR}/stats/helper.hh
   ${INC_DIR}/time/daterange.hh

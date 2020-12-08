@@ -47,6 +47,7 @@ mysql_manager::mysql_manager()
  *  Destructor
  */
 mysql_manager::~mysql_manager() {
+  stats::center::instance().unregister_mysql_manager();
   log_v2::sql()->trace("mysql_manager destruction");
   // If connections are still active but unique here, we can remove them
   std::lock_guard<std::mutex> cfg_lock(_cfg_mutex);

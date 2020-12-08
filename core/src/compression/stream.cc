@@ -171,17 +171,6 @@ bool stream::read(std::shared_ptr<io::data>& data, time_t deadline) {
 }
 
 /**
- *  Get statistics.
- *
- *  @param[out] buffer Output buffer.
- */
-void stream::statistics(json11::Json::object& tree) const {
-  if (_substream)
-    _substream->statistics(tree);
-  return;
-}
-
-/**
  *  Flush the stream.
  *
  *  @return The number of events acknowledged.
