@@ -71,8 +71,9 @@ class stream : public io::stream {
     }
     ~buffer() noexcept = default;
 
-    bool matches(uint32_t event_id, uint32_t source_id, uint32_t dest_id) const
-        noexcept {
+    bool matches(uint32_t event_id,
+                 uint32_t source_id,
+                 uint32_t dest_id) const noexcept {
       return event_id == _event_id && source_id == _source_id &&
              dest_id == _dest_id;
     }
@@ -128,9 +129,10 @@ class stream : public io::stream {
   enum negotiation_type { negotiate_first = 1, negotiate_second, negotiated };
 
   stream();
-  stream(stream const&) = delete;
-  ~stream() noexcept;
-  stream& operator=(stream const&) = delete;
+  ~stream() noexcept = default;
+  stream(const stream&) = delete;
+  stream& operator=(const stream&) = delete;
+  int32_t stop() override;
   int flush() override;
   void negotiate(negotiation_type neg);
   bool read(std::shared_ptr<io::data>& d,

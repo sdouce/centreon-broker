@@ -37,11 +37,6 @@ using namespace com::centreon::broker::multiplexing;
 publisher::publisher() : io::stream("publisher") {}
 
 /**
- *  Destructor.
- */
-publisher::~publisher() noexcept {}
-
-/**
  *  @brief Read data.
  *
  *  Reading is not available from publisher. Therefore this method will
@@ -80,7 +75,7 @@ int publisher::write(std::shared_ptr<io::data> const& d) {
  *
  * @return The number of events published.
  */
-int publisher::write(std::list<std::shared_ptr<io::data>> const& to_publish) {
+int publisher::write(const std::list<std::shared_ptr<io::data>>& to_publish) {
   engine::instance().publish(to_publish);
   return to_publish.size();
 }

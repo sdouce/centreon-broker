@@ -74,6 +74,7 @@ class stream : public io::stream {
   rebuilder _rebuilder;
   std::string _status;
   mutable std::mutex _statusm;
+  bool _stopped;
 
   void _update_status(std::string const& status);
 
@@ -86,10 +87,11 @@ class stream : public io::stream {
   stream(stream const&) = delete;
   stream& operator=(stream const&) = delete;
   ~stream();
-  int32_t flush();
-  bool read(std::shared_ptr<io::data>& d, time_t deadline);
+  int32_t stop() override;
+  int32_t flush() override;
+  bool read(std::shared_ptr<io::data>& d, time_t deadline) override;
   void statistics(json11::Json::object& tree) const override;
-  int32_t write(std::shared_ptr<io::data> const& d);
+  int32_t write(std::shared_ptr<io::data> const& d) override;
 };
 }  // namespace storage
 

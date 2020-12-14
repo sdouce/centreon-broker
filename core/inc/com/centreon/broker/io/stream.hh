@@ -48,13 +48,22 @@ namespace io {
  *  should return the number of event fully written through (taking into
  *  account any buffering, or underlayer) to the end device. If that
  *  information is not available or meaningful, it should always return '1'.
+ *
+ *  Behind a stream, we can have threads doing complicated things. Before
+ *  destroying a stream, we have to stop all those threads correctly, to flush
+ *  pending events, all these things are the purpose of the stop() internal
+ *  function.
  */
 class stream {
   const std::string _name;
 
+ protected:
+  std::shared_ptr<stream> _substream;
+
  public:
   stream(const std::string& name);
-  virtual ~stream() noexcept;
+  virtual ~stream() noexcept = default;
+  virtual int32_t stop();
   stream(const stream&) = delete;
   stream& operator=(const stream&) = delete;
   virtual int flush();
@@ -68,9 +77,6 @@ class stream {
   bool validate(std::shared_ptr<io::data> const& d, std::string const& error);
   virtual int write(std::shared_ptr<data> const& d) = 0;
   const std::string& get_name() const { return _name; }
-
- protected:
-  std::shared_ptr<stream> _substream;
 };
 }  // namespace io
 

@@ -70,7 +70,8 @@ stream::stream(database_config const& dbcfg,
       _rebuilder(dbcfg,
                  rebuild_check_interval,
                  rrd_len ? rrd_len : 15552000,
-                 interval_length) {
+                 interval_length),
+      _stopped(false) {
   log_v2::sql()->debug("storage stream instanciation");
   if (!rrd_len)
     rrd_len = 15552000;
@@ -81,13 +82,20 @@ stream::stream(database_config const& dbcfg,
         << "Unable to initialize the storage connection to the database";
 }
 
+int32_t stream::stop() {
+  // Stop cleanup thread.
+  int retval = conflict_manager::instance().unload(conflict_manager::storage);
+  log_v2::sql()->debug("storage: stream destruction with {} events to ack",
+                       retval);
+  _stopped = true;
+  return retval;
+}
+
 /**
  *  Destructor.
  */
 stream::~stream() {
-  // Stop cleanup thread.
-  log_v2::sql()->debug("storage: stream destruction");
-  conflict_manager::instance().unload(conflict_manager::storage);
+  assert(_stopped);
 }
 
 /**

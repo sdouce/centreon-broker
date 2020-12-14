@@ -346,8 +346,12 @@ void failover::run() {
       log_v2::core()->error(e.what());
       logging::error(logging::high) << e.what();
       {
-        std::lock_guard<std::timed_mutex> stream_lock(_stream_m);
-        _stream.reset();
+        if (_stream) {
+          int32_t ack_events = _stream->stop();
+          _subscriber->get_muxer().ack_events(ack_events);
+          std::lock_guard<std::timed_mutex> stream_lock(_stream_m);
+          _stream.reset();
+        }
         set_state("connecting");
       }
       _launch_failover();
@@ -359,6 +363,8 @@ void failover::run() {
           << "software bug that should be reported to Centreon Broker "
              "developers";
       {
+        int32_t ack_events = _stream->stop();
+        _subscriber->get_muxer().ack_events(ack_events);
         std::lock_guard<std::timed_mutex> stream_lock(_stream_m);
         _stream.reset();
         set_state("connecting");
@@ -370,7 +376,14 @@ void failover::run() {
     // Clear stream.
     {
       std::lock_guard<std::timed_mutex> stream_lock(_stream_m);
-      _stream.reset();
+
+      if (_stream) {
+        // If ack_events is not zero, then we will store data twice
+        int32_t ack_events = _stream->flush();
+        assert(ack_events == 0);
+        _subscriber->get_muxer().ack_events(ack_events);
+        _stream.reset();
+      }
       set_state("connecting");
     }
 

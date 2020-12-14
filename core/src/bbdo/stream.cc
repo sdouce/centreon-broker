@@ -486,9 +486,18 @@ stream::stream()
       _events_received_since_last_ack(0) {}
 
 /**
- *  Destructor.
+ * @brief All the mecanism behind this stream is stopped once this method is
+ * called. The last thing done is to return how many events are acknowledged.
+ *
+ * @return The number of events to acknowledge.
  */
-stream::~stream() noexcept {}
+int32_t stream::stop() {
+  _substream->stop();
+  int retval = _acknowledged_events;
+  _acknowledged_events = 0;
+  io::stream::stop();
+  return retval;
+}
 
 /**
  *  Flush stream data.
@@ -942,8 +951,7 @@ void stream::_read_packet(size_t size, time_t deadline) {
         if (_packet.size() == 0) {
           _packet = std::move(new_v);
           new_v.clear();
-        }
-        else
+        } else
           _packet.insert(_packet.end(), new_v.begin(), new_v.end());
       }
     }
