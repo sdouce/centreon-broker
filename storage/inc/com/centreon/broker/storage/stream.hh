@@ -89,7 +89,6 @@ class stream : public io::stream {
   ~stream();
   int32_t flush();
   bool read(std::shared_ptr<io::data>& d, time_t deadline);
-  void statistics(json11::Json::object& tree) const override;
   int32_t write(std::shared_ptr<io::data> const& d);
   void register_stats(StreamStats* stats) override;
 };

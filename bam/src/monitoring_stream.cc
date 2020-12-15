@@ -139,16 +139,6 @@ bool monitoring_stream::read(std::shared_ptr<io::data>& d, time_t deadline) {
   throw(exceptions::shutdown() << "cannot read from BAM monitoring stream");
   return true;
 }
-/**
- *  Get endpoint statistics.
- *
- *  @param[out] tree Output tree.
- */
-void monitoring_stream::statistics(json11::Json::object& tree) const {
-  std::lock_guard<std::mutex> lock(_statusm);
-  if (!_status.empty())
-    tree["status"] = _status;
-}
 
 /**
  *  Rebuild index and metrics cache.

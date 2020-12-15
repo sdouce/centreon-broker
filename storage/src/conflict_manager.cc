@@ -91,8 +91,6 @@ conflict_manager::conflict_manager(database_config const& dbcfg,
       _max_metrics_queries{0},
       _max_cv_queries{0},
       _max_log_queries{0},
-      _events_handled{0},
-      _speed{},
       _ref_count{0},
       _oldest_timestamp{std::numeric_limits<time_t>::max()},
       _stats(stats::center::instance().register_conflict_manager()) {

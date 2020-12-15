@@ -39,7 +39,6 @@ class persistent_file : public io::stream {
   ~persistent_file() noexcept;
   bool read(std::shared_ptr<io::data>& d, time_t deadline = (time_t)-1);
   void remove_all_files();
-  void statistics(json11::Json::object& tree) const override;
   int write(std::shared_ptr<io::data> const& d);
 
  private:

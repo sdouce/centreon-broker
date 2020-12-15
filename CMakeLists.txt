@@ -621,6 +621,7 @@ add_broker_module(GRAPHITE ON)
 add_broker_module(BAM ON)
 add_broker_module(TCP ON)
 add_broker_module(TLS ON)
+add_broker_module(DUMP OFF)
 
 # Lua module.
 option(WITH_MODULE_LUA "Build lua module." ON)

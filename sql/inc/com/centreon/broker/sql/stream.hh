@@ -81,7 +81,7 @@ class stream : public io::stream {
   bool read(std::shared_ptr<io::data>& d, time_t deadline);
   void update();
   int write(std::shared_ptr<io::data> const& d);
-  void statistics(json11::Json::object& tree) const override;
+  //void statistics(json11::Json::object& tree) const override;
   void register_stats(StreamStats* stats) override;
 };
 }  // namespace sql

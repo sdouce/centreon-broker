@@ -521,18 +521,6 @@ int32_t stream::write(std::shared_ptr<io::data> const& data) {
   return ack;
 }
 
-/**
- *  Get endpoint statistics.
- *
- *  @param[out] tree Output tree.
- */
-void stream::statistics(json11::Json::object& tree) const {
-  json11::Json::object obj{
-      storage::conflict_manager::instance().get_statistics()};
-  tree["sql pending events"] = _pending_events;
-  tree["conflict_manager"] = obj;
-}
-
 void stream::register_stats(StreamStats* stats) {
   io::stream::register_stats(stats);
   start_stats(std::bind(&stream::_update_stats, this));

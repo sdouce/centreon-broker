@@ -122,18 +122,6 @@ bool stream::read(std::shared_ptr<io::data>& d, time_t deadline) {
 }
 
 /**
- *  Get endpoint statistics.
- *
- *  @param[out] tree Output tree.
- */
-void stream::statistics(json11::Json::object& tree) const {
-  std::lock_guard<std::mutex> lock(_statusm);
-  if (!_status.empty())
-    tree["status"] = _status;
-  tree["pending events"] = _pending_events;
-}
-
-/**
  *  Write an event.
  *
  *  @param[in] data Event pointer.
