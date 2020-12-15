@@ -194,7 +194,8 @@ void endpoint::apply(std::list<config::endpoint> const& endpoints) {
 }
 
 /**
- *  Discard applied configuration.
+ *  Discard applied configuration. Running endpoints are destroyed one by one.
+ *
  */
 void endpoint::discard() {
   log_v2::config()->debug("endpoint applier: destruction");
@@ -254,6 +255,7 @@ std::timed_mutex& endpoint::endpoints_mutex() {
  *  @return Class instance.
  */
 endpoint& endpoint::instance() {
+  assert(gl_endpoint);
   return *gl_endpoint;
 }
 

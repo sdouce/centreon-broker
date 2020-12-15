@@ -123,9 +123,7 @@ static void term_handler(int signum, siginfo_t* info, void* data) {
   (void)data;
 
   // Log message.
-  logging::info(logging::high)
-      << "main: termination request received by process id " << info->si_pid
-      << " with real user id " << info->si_uid;
+  log_v2::core()->info("main: termination request received by process id {} with real user id {}", info->si_pid, info->si_uid);
 
   // Unload endpoints.
   config::applier::deinit();
